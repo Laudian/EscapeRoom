@@ -111,7 +111,7 @@ class GameBoard(object):
         # TODO Surround the Baord with Walls
 
         # Spiel startet
-        self.network.showMessage("Das Spiel beginnt nun. Hier steht irgendeine Einleitung")
+        self.network.showMessage("Das Spiel beginnt nun. Hier steht irgendeine Einleitung. Es geht los.")
 
     def turn(self, dir: Direction):
         self.player.setDir(dir)
