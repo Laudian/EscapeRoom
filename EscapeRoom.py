@@ -1,5 +1,5 @@
 import logging
-import Settings_local
+import Settings_local as Settings
 
 # Set up logging
 logging.basicConfig(filename=Settings.logfile, level=Settings.loglevel,
