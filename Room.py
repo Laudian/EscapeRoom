@@ -23,6 +23,15 @@ class Room(object):
         self.command_handlers = {}
         return
 
+    # Set Permissions
+    def setPermission(self, name, permission):
+        self.permissions[name] = permission
+        return
+
+    # Get a permissoin, returns None if permission is not set
+    def getPermission(self, name):
+        return self.permissions.get(name, None)
+
     # Usually returns self.players, but may be overridden to include subrooms
     def getPlayers(self):
         return self.players
