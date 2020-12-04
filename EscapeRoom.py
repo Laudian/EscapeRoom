@@ -1,5 +1,6 @@
 import logging
 import Settings_local as Settings
+import Discord
 from Player import Player
 
 # Set up logging
@@ -22,6 +23,10 @@ class EscapeRoom(object):
 
         # A list of players that are currently in the game
         self.players = {}
+
+        # Starting the Discord Bot
+        self.bot = Discord.DiscordBot
+        self.bot.run(Settings.discord_token)
         return
 
     # Use this to register your own command functions
