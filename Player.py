@@ -1,10 +1,9 @@
 import logging
 
 class Player(object):
-    __id = 1
+    id = 0
     def __init__(self, name):
-        self.id = __id
-        __id += 1
+        self.id = Player.getId()
         self.name = name
         self.current_room = None
         logging.info("Player {name} has joined the game, ID is {id).".format(name=self.name, id=self.id))
@@ -15,3 +14,7 @@ class Player(object):
 
     def __ne__(self, other):
         return not self == other
+
+    def getId():
+        id += 1
+        return id
