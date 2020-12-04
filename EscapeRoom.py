@@ -25,7 +25,7 @@ class EscapeRoom(object):
         self.players = {}
 
         # Starting the Discord Bot
-        self.bot = Discord.DiscordBot
+        self.bot = Discord.DiscordBot()
         self.bot.run(Settings.discord_token)
         return
 
