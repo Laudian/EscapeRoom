@@ -5,7 +5,8 @@ from Player import Player
 
 # Set up logging
 logging.basicConfig(filename=Settings.logfile, level=Settings.loglevel,
-                    format='%(asctime)s %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+                    format='%(asctime)s %(message)s', datefmt='%Y/%m/%d %H:%M:%S',
+                    encoding="utf-8")
 
 class EscapeRoom(object):
     def __init__(self):
