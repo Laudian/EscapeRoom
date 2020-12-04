@@ -1,17 +1,13 @@
-
-
+import logging
 
 class Room(object):
     # Subclasses should always call this in their initializer
     def __init__(self, name):
         # The name of the room, used for text- and voicechannels for example
         self.name = name
-        # Rooms must list commands available in this room as tuples of the form:
-        # ("name", "description")
-        self.commands = []
-
-        # A list of commands that are not available in this room, for example "inventory"
-        self.commands_disabled = []
+        # A Dictionary of the commands available in this room
+        # "name" : "description"
+        self.commands = {}
 
         # A list of players currently in this room
         self.players = []
@@ -24,11 +20,17 @@ class Room(object):
         }
 
         # Initializes the Dictionary where functions corresponding to the commands are stored in
-        self.command_handler = {}
+        self.command_handlers = {}
+        return
 
     # Usually returns self.players, but may be overridden to include subrooms
     def getPlayers(self):
         return self.players
+
+    # Used to view the commands made available by this room, for example to
+    # show which commands are available to the player.
+    def getCommands(self):
+        return self.commands
 
     # This method is called when a player enters a room and must be available
     # You should probably override this method
@@ -55,7 +57,24 @@ class Room(object):
     def sendTextMessage(self):
         return
 
+    # This Method is called if the command used is unavailable in this room. It will inform the player
+    # of this by whispering to him
+    def invalidCommandHandler(self, caller, content):
+        caller.sendMessage("This command is not available here. See !commands for a list of all commands that are"
+                            "available to you or !help to get more general information.")
+        return
+
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    def handleCommand(self, caller, command, content):
-        self.command_handler.get(command)(caller, content)
+    def handleCommand(self, caller, command, content=None):
+        self.command_handlers.get(command, self.invalidCommandHandler)(caller, content, command)
+        return
+
+    # Use this to register your own command functions
+    # Function should have the form handler(self, caller, content), where caller is a Player object
+    # Name should be without the commandprefix (e.g. help, not !help)
+    def registerCommand(self, name, function, description):
+        self.commands[name] = description
+        self.command_handlers[name] = function
+        return
+
