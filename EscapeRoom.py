@@ -56,8 +56,8 @@ class EscapeRoom(object):
         self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
         return
 
-    def help(self, caller : Player, content):
-        logging.debug("{caller} has called the help function.".format(caller=caller.name))
+    def help(self, caller : Player, command, content):
+        logging.debug("{caller} has called the help function.".format(caller=caller))
         return
 
     def start(self):
