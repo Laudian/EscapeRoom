@@ -1,7 +1,9 @@
 import logging
 import Settings_local as Settings
 import Discord
+from rooms.Entrance import Entrance
 from Player import Player
+from Message import *
 
 # Set up logging
 logging.basicConfig(filename=Settings.logfile, level=Settings.loglevel,
@@ -26,8 +28,10 @@ class EscapeRoom(object):
         self.players = {}
 
         # Starting the Discord Bot
-        self.bot = Discord.DiscordBot()
-        self.bot.run(Settings.discord_token)
+        self.bot = Discord.DiscordBot(self)
+
+        # Raum zum testen
+        self.room = Entrance()
         return
 
     # Use this to register your own command functions
@@ -53,5 +57,13 @@ class EscapeRoom(object):
 
     def help(self, caller : Player, content):
         logging.debug("{caller} has called the help function.".format(caller=caller.name))
+        return
+
+    def start(self):
+        self.bot.run(Settings.discord_token)
+        return
+
 
 game = EscapeRoom()
+game.bot.game_sendMessage(Message(game.room, "Dies ist eine Nachricht."))
+game.start()
