@@ -31,6 +31,8 @@ class DiscordBot(discord.Client):
     async def on_message(self, message):
         if message.content.startswith("!"):
             logging.debug("on_message event was triggered")
+            await asyncio.sleep(5)
+            message.delete()
 
     # someone adds a reaction anywhere the bot can see it
     async def on_raw_reaction_add(self, payload):
