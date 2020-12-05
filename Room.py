@@ -49,6 +49,8 @@ class Room(object):
     def enter(self, player):
         if player not in self.players:
             self.players.append(player)
+            player.setRoom(self)
+            logging.info("Player {name} has entered room {room}".format(name=player, room=self))
         else:
             # This should not happen. TODO: Probably log this in some error file
             return None
@@ -64,15 +66,10 @@ class Room(object):
             return None
         return True
 
-    # This method should write a message in the textchannel corresponding to this room
-    # This should do nothing if the permission "textchannel_available" is False
-    def sendTextMessage(self):
-        return
-
     # This Method is called if the command used is unavailable in this room. It will inform the player
     # of this by whispering to him
-    def invalidCommandHandler(self, caller, content):
-        caller.sendMessage("This command is not available here. See !commands for a list of all commands that are"
+    def invalidCommandHandler(self, caller, command, content):
+        caller.send("This command is not available here. See !commands for a list of all commands "
                             "available to you or !help to get more general information.")
         return
 
@@ -90,7 +87,10 @@ class Room(object):
         self.command_handlers[name] = function
         return
 
-    # Sends a message to this player, me be string or an image
+    # Sends a message to this room, me be string or an image
     def send(self, message):
         self.game.sendMessage(self, message)
         return
+
+    def __repr__(self):
+        return self.name

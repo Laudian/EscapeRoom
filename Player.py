@@ -8,8 +8,41 @@ class Player(object):
         self.name = name
         self.current_room = None
         self.message_type = MessageType.PLAYER
-        logging.info("Player {name} has joined the game, ID is {id).".format(name=self.name, id=self.id))
+        logging.info("Player {name} has joined the game, ID is {id}.".format(name=name, id=self.id))
         self.game = game
+
+        # A Dictionary of commands available to this player (e.g. admin commands)
+        # "name" : "description"
+        self.commands = {}
+
+        # Initializes the Dictionary where functions corresponding to the commands are stored in
+        self.command_handlers = {}
+
+        # Commands are registered here
+        #self.registerCommand("help", self.help, "Explains how to play the game.")
+        return
+
+    # Use this to register your own command functions
+    # Function should have the form handler(self, caller, content), where caller is a Player object
+    # Name should be without the commandprefix (e.g. help, not !help)
+    def registerCommand(self, name, function, description):
+        self.commands[name] = description
+        self.command_handlers[name] = function
+        return
+
+    # This Method is called if the command used is unavailable to this player
+    # will try tio resolve this by calling caller.current_room.handleCommand()
+    def invalidCommandHandler(self, caller, command, content):
+        logging.debug("4")
+        logging.debug(self)
+        self.current_room.handleCommand(caller, command, content)
+        return
+
+    # This method handles commands that players use and should be called by the game commandHandler
+    # Usually,  every command should have it's own function which is accessed via a dicitonary
+    def handleCommand(self, caller, command, content):
+        logging.debug("3")
+        self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
         return
 
     def __eq__(self, other):
@@ -23,7 +56,16 @@ class Player(object):
         self.game.sendMessage(self, message)
         return
 
-    @staticmethod
-    def getId():
-        id += 1
-        return id
+    @classmethod
+    def getId(cls):
+        cls.id += 1
+        return cls.id
+
+    def __hash__(self):
+        return self.id
+
+    def __repr__(self):
+        return self.name + ":" + str(self.id)
+
+    def setRoom(self, room):
+        self.current_room = room

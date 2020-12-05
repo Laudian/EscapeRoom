@@ -25,7 +25,7 @@ class EscapeRoom(object):
         self.registerCommand("help", self.help, "Explains how to play the game.")
 
         # A list of players that are currently in the game
-        self.players = {}
+        self.players = []
 
         # Starting the Discord Bot
         self.bot = Discord.DiscordBot(self)
@@ -42,17 +42,18 @@ class EscapeRoom(object):
         self.command_handlers[name] = function
         return
 
-    # This Method is called if the command used is unavailable in this room. It will inform the player
-    # of this by whispering to him
-    def invalidCommandHandler(self, caller, content):
-        caller.sendMessage("This command is not available here. See !commands for a list of all commands that are"
-                            "available to you or !help to get more general information.")
+    # This Method is called if the command used is unavailable in the general game.
+    # will try tio resolve this by calling caller.handleCommand()
+    def invalidCommandHandler(self, caller: Player, command, content):
+        logging.debug("2")
+        caller.handleCommand(caller, command, content)
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    def handleCommand(self, caller, command, content=None):
-        self.command_handlers.get(command, self.invalidCommandHandler)(caller, content, command)
+    def handleCommand(self, caller, command, content):
+        logging.debug("1")
+        self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
         return
 
     def help(self, caller : Player, content):
@@ -66,6 +67,10 @@ class EscapeRoom(object):
     def sendMessage(self, target, content):
         self.bot.game_sendMessage(Message(target, content))
         return
+
+    def registerPlayer(self, name):
+        newplayer = Player(name, self)
+        return newplayer
 
 
 game = EscapeRoom()

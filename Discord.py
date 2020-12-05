@@ -3,6 +3,7 @@ import discord
 from queue import Queue
 from Message import *
 import asyncio
+import Player
 
 
 class DiscordBot(discord.Client):
@@ -10,8 +11,10 @@ class DiscordBot(discord.Client):
     def __init__(self, game):
         super().__init__()
 
+        # Dict of {player : discorduser}
         self.game_users = {}
 
+        # Dict of {room : discordchannel}
         self.game_channels = {}
 
         self.game_message_queue = Queue()
@@ -22,6 +25,18 @@ class DiscordBot(discord.Client):
         self.game_sendMessages = False
         return
 
+    # translates a discord channel into a game room
+    # returns None if there is no room associated with that channel
+    def getRoom(self, channel):
+        reversed = {value: key for (key, value) in self.game_channels.items()}
+        return reversed.get(user, None)
+
+    # translates a discord user into a game player
+    # returns None if that user is not in the game
+    def getPlayer(self, user) -> Player.Player:
+        reversed = {value: key for (key, value) in self.game_users.items()}
+        return reversed.get(user, None)
+
 
     # logged in and prepared
     async def on_ready(self):
@@ -30,9 +45,24 @@ class DiscordBot(discord.Client):
         logging.info("Bot is online")
 
     # someone sends a message anywhere the bot can read it
-    async def on_message(self, message):
-        if message.content.startswith("!"):
+    async def on_message(self, message:discord.Message):
+        if message.content == "!register":
+            if message.author in self.game_users.items():
+                message.author.send("Du bist bereits angemeldet")
+                logging.debug("User tried to register but was already registered")
+            else:
+                player = self.game.registerPlayer(message.author.name)
+                self.game_users[player] = message.author
+                player.send("Du wurdest erfolgreich angemeldet")
+                logging.debug("User {name} was successfully registered".format(name=message.author.name))
+                self.game.room.enter(player)
+
+        elif message.content.startswith("!"):
             logging.debug("on_message event was triggered")
+            split = message.content.split(" ", 1)
+            command = split[0].lstrip("!")
+            content = None if len(split) < 2 else split[1]
+            self.game.handleCommand(self.getPlayer(message.author), command, content)
             await asyncio.sleep(5)
             await message.delete()
 
@@ -52,6 +82,7 @@ class DiscordBot(discord.Client):
                         target = self.game_users[message.target]
                     else:
                         logging.debug("Messagetype unknown")
+                        continue
                     await target.send(message.content)
                 except:
                     break
