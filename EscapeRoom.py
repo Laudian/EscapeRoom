@@ -1,7 +1,7 @@
 import logging
 import Settings_local as Settings
 import Discord
-from rooms.Entrance import Entrance
+from rooms.Quizroom import Quizroom
 from Player import Player
 from Message import *
 
@@ -31,7 +31,7 @@ class EscapeRoom(object):
         self.bot = Discord.DiscordBot(self)
 
         # Raum zum testen
-        self.room = Entrance(self)
+        self.room = Quizroom(self)
         return
 
     # Use this to register your own command functions
