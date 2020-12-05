@@ -7,8 +7,7 @@ class MessageType(Enum):
     PLAYER = 2
 
 class Message(object):
-    def __init__(self, target, type : MessageType, content):
+    def __init__(self, target, content):
         self.target = target
-        self.type = type
         self.content = content
         return

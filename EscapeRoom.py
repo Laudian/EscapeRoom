@@ -31,7 +31,7 @@ class EscapeRoom(object):
         self.bot = Discord.DiscordBot(self)
 
         # Raum zum testen
-        self.room = Entrance()
+        self.room = Entrance(self)
         return
 
     # Use this to register your own command functions
@@ -63,7 +63,11 @@ class EscapeRoom(object):
         self.bot.run(Settings.discord_token)
         return
 
+    def sendMessage(self, target, content):
+        self.bot.game_sendMessage(Message(target, content))
+        return
+
 
 game = EscapeRoom()
-game.bot.game_sendMessage(Message(game.room, MessageType.CHANNEL, "Dies ist eine Nachricht."))
+game.room.send("Raum wurde erstellt, Testnachricht")
 game.start()

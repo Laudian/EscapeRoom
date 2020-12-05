@@ -1,8 +1,9 @@
 import logging
+from Message import MessageType
 
 class Room(object):
     # Subclasses should always call this in their initializer
-    def __init__(self, name):
+    def __init__(self, name, game):
         # The name of the room, used for text- and voicechannels for example
         self.name = name
         # A Dictionary of the commands available in this room
@@ -21,6 +22,8 @@ class Room(object):
 
         # Initializes the Dictionary where functions corresponding to the commands are stored in
         self.command_handlers = {}
+        self.message_type = MessageType.CHANNEL
+        self.game = game
         return
 
     # Set Permissions
@@ -87,3 +90,7 @@ class Room(object):
         self.command_handlers[name] = function
         return
 
+    # Sends a message to this player, me be string or an image
+    def send(self, message):
+        self.game.sendMessage(self, message)
+        return
