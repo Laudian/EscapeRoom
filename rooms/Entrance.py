@@ -1,4 +1,4 @@
-import Room
+from Room import Room
 import logging
 
 class Entrance(Room):

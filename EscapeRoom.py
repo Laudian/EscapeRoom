@@ -65,5 +65,5 @@ class EscapeRoom(object):
 
 
 game = EscapeRoom()
-game.bot.game_sendMessage(Message(game.room, "Dies ist eine Nachricht."))
+game.bot.game_sendMessage(Message(game.room, MessageType.CHANNEL, "Dies ist eine Nachricht."))
 game.start()

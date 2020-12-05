@@ -1,8 +1,8 @@
 import logging
 import Settings_local as Settings
-import enum
+from enum import Enum
 
-class MessageType(enum):
+class MessageType(Enum):
     CHANNEL = 1
     PLAYER = 2
 
