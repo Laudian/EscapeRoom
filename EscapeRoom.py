@@ -1,7 +1,6 @@
 import logging
 import Settings_local as Settings
 import Discord
-from Player import Player
 
 # Set up logging
 logging.basicConfig(filename=Settings.logfile, level=Settings.loglevel,
