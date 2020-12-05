@@ -37,7 +37,6 @@ class DiscordBot(discord.Client):
         reversed = {value: key for (key, value) in self.game_users.items()}
         return reversed.get(user, None)
 
-
     # logged in and prepared
     async def on_ready(self):
         self.game_channels[self.game.room] = self.get_channel(784596953496813598)
