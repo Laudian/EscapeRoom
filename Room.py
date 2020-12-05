@@ -76,7 +76,7 @@ class Room(object):
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
     def handleCommand(self, caller, command, content=None):
-        self.command_handlers.get(command, self.invalidCommandHandler)(caller, content, command)
+        self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
         return
 
     # Use this to register your own command functions

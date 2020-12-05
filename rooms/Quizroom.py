@@ -5,11 +5,10 @@ import logging
 class Quizroom(Room):
     def __init__(self, game):
         super().__init__("Quiz", game)
-
         # variables
         self.progress = {}
         self.mistakes = {}
-        self.starttext = ""
+        self.starttext = "Herzlich Willkommen im Quizroom"
         self.roomreward = ""  # TODO: add reward for completing
 
         # questions
@@ -37,26 +36,27 @@ class Quizroom(Room):
     # private
     # starting test at player joining
     def enter(self, player):
+        super().enter(player)
         player.send(self.starttext)
         self.progress[player] = 0
         self.mistakes[player] = 0
-        self.getQuestion(self, "", player, "")
+        self.getQuestion(None, player, None)
 
     # public
     # get progress
-    def getProgress(self, command, player, content):
+    def getProgress(self, player, command, content):
         progress = self.progress[player]
         player.send("Du hast " + str(progress) + " von " + str(len(self.questions) - 1) + " Aufgaben gelöst" + \
                   " und bisher " + str(self.mistakes[player]) + "-mal falsch geantwortet.")
 
     # show current question
-    def getQuestion(self, command, player, content):
+    def getQuestion(self, player, command, content):
         progress = self.progress[player]
         question = self.questions[progress]
         player.send(question)
 
     # give an answer
-    def giveAnswer(self, command, player, content):
+    def giveAnswer(self, player, command, content):
         progress = self.progress[player]
         answer_given = (str(content).lower()).replace(" ", "")
         answer_right = self.answers[progress]
