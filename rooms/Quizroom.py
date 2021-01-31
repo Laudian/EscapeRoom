@@ -44,7 +44,7 @@ class Quizroom(Room):
 
     def completed(self, player):
         self.getProgress(player, None, None)
-        # TODO: add rewards for completing like e.g. permission for next roomk
+        # TODO: add rewards for completing like e.g. permission for next room
         self.progress[player] = 0
         self.mistakes[player] = 0
 

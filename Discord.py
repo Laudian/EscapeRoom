@@ -29,7 +29,7 @@ class DiscordBot(discord.Client):
     # returns None if there is no room associated with that channel
     def getRoom(self, channel):
         reversed = {value: key for (key, value) in self.game_channels.items()}
-        return reversed.get(user, None)
+        return reversed.get(channel, None)
 
     # translates a discord user into a game player
     # returns None if that user is not in the game
