@@ -89,7 +89,7 @@ class Room(object):
 
     # Sends a message to this room, me be string or an image
     def send(self, message):
-        self.game.sendMessage(self, message)
+        self.game.send_message(self, message)
         return
 
     def __repr__(self):

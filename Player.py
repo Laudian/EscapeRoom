@@ -35,7 +35,7 @@ class Player(object):
     def invalidCommandHandler(self, caller, command, content):
         logging.debug("4")
         logging.debug(self)
-        self.current_room.handleCommand(caller, command, content)
+        self.current_room.handle_command(caller, command, content)
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
@@ -53,7 +53,7 @@ class Player(object):
 
     # Sends a message to this player, me be string or an image
     def send(self, message):
-        self.game.sendMessage(self, message)
+        self.game.send_message(self, message)
         return
 
     @classmethod

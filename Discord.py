@@ -1,67 +1,42 @@
 import logging
 import discord
-from queue import Queue
+from queue import Queue, Empty
 from Message import *
 import asyncio
 import Player
+import Settings_local as Settings
 
 
 class DiscordBot(discord.Client):
 
-    def __init__(self, game):
+    def __init__(self, controller):
         super().__init__()
 
-        # Dict of {player : discorduser}
-        self.game_users = {}
+        self.messageQueue = Queue()
 
-        # Dict of {room : discordchannel}
-        self.game_channels = {}
+        self.controller = controller
 
-        self.game_message_queue = Queue()
-
-        self.game = game
-
-        self.game_sendMessageTask = self.loop.create_task(self.game_MessageDispatcher())
-        self.game_sendMessages = False
+        self.sendMessageTask = self.loop.create_task(self.dispatch_messages())
+        self.enableMessaging = False
         return
-
-    # translates a discord channel into a game room
-    # returns None if there is no room associated with that channel
-    def getRoom(self, channel):
-        reversed = {value: key for (key, value) in self.game_channels.items()}
-        return reversed.get(channel, None)
-
-    # translates a discord user into a game player
-    # returns None if that user is not in the game
-    def getPlayer(self, user) -> Player.Player:
-        reversed = {value: key for (key, value) in self.game_users.items()}
-        return reversed.get(user, None)
 
     # logged in and prepared
     async def on_ready(self):
-        self.game_channels[self.game.room] = self.get_channel(784596953496813598)
-        self.game_sendMessages = True
+        self.controller.register_rooms()
+        self.enableMessaging = True
         logging.info("Bot is online")
 
     # someone sends a message anywhere the bot can read it
-    async def on_message(self, message:discord.Message):
-        if message.content == "!register":
-            if message.author in self.game_users.items():
-                message.author.send("Du bist bereits angemeldet")
-                logging.debug("User tried to register but was already registered")
-            else:
-                player = self.game.registerPlayer(message.author.name)
-                self.game_users[player] = message.author
-                player.send("Du wurdest erfolgreich angemeldet")
-                logging.debug("User {name} was successfully registered".format(name=message.author.name))
-                self.game.room.enter(player)
+    async def on_message(self, message: discord.Message):
+        if message.content == Settings.commandPrefix + "register":
+            self.controller.register_player(message.author)
 
-        elif message.content.startswith("!"):
+        elif message.content.startswith(Settings.commandPrefix):
             logging.debug("on_message event was triggered")
             split = message.content.split(" ", 1)
             command = split[0].lstrip("!")
             content = None if len(split) < 2 else split[1]
-            self.game.handleCommand(self.getPlayer(message.author), command, content)
+            self.controller.handle_command(message.author, command, content)
             await asyncio.sleep(5)
             await message.delete()
 
@@ -69,25 +44,25 @@ class DiscordBot(discord.Client):
     async def on_raw_reaction_add(self, payload):
         pass
 
-    async def game_MessageDispatcher(self):
+    async def dispatch_messages(self):
         await self.wait_until_ready()
         while not self.is_closed():
-            while self.game_sendMessages:
+            while self.enableMessaging:
                 try:
-                    message = self.game_message_queue.get(block=False)
+                    message = self.messageQueue.get(block=False)
                     if message.target.message_type == MessageType.CHANNEL:
-                        target = self.game_channels[message.target]
+                        target = self.controller.room_to_discord(message.target)
                     elif message.target.message_type == MessageType.PLAYER:
-                        target = self.game_users[message.target]
+                        target = self.controller.player_to_discord(message.target)
                     else:
-                        logging.debug("Messagetype unknown")
+                        logging.debug("Message type unknown")
                         continue
                     await target.send(message.content)
-                except:
+                except Empty:
                     break
             await asyncio.sleep(1)  # task runs every second
 
 
-    def game_sendMessage(self, message : Message):
-        self.game_message_queue.put(message)
+    def send_message(self, message : Message):
+        self.messageQueue.put(message)
         return
