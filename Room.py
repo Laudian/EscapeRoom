@@ -2,8 +2,8 @@ import logging
 from Message import MessageType
 from typing import Dict, List
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
+# noinspection PyUnreachableCode
+if False:
     from Player import Player
     from EscapeRoom import EscapeRoom
 
@@ -17,14 +17,14 @@ class Room(object):
         self.commands: Dict[str, str] = {}
 
         # A list of players currently in this room
-        self.players: List[Player] = []
+        self.players: List["Player"] = []
 
         # A Dictionary to keep track of permissions
         self.permissions =\
         {
             
         }
-        
+
         # Topic for Discord Channel
         self.topic = "Topic setzen"
 

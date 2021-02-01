@@ -3,13 +3,16 @@ import discord
 from queue import Queue, Empty
 from Message import *
 import asyncio
-import Player
 import Settings_local as Settings
+
+# noinspection PyUnreachableCode
+if False:
+    from EscapeRoom import EscapeRoom
 
 
 class DiscordBot(discord.Client):
 
-    def __init__(self, controller):
+    def __init__(self, controller: "EscapeRoom"):
         super().__init__()
 
         self.messageQueue = Queue()

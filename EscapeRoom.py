@@ -1,13 +1,15 @@
 import logging
 import Settings_local as Settings
 from Discord import DiscordBot
-import discord
 from rooms import Quizroom, Entrance
 from Player import Player
 from Message import *
 from typing import Dict, Union
+import discord
 
-from Room import Room
+# noinspection PyUnreachableCode
+if False:
+    from Room import Room
 
 # Set up logging
 logging.basicConfig(filename=Settings.logfile, level=Settings.loglevel,
@@ -27,9 +29,9 @@ class EscapeRoom(object):
         self.__discordUsers: Dict[DiscordBot.user, Player] = {}
 
         # Dictionaries to translate between Rooms and Discord channels
-        self.__discordChannels: Dict[DiscordBot.TextChannel, Room] = {}
-        self.__rooms: Dict[Room, DiscordBot.TextChannel] = {}
-        self.__logRooms: Dict[Room, DiscordBot.TextChannel] = {}
+        self.__discordChannels: Dict[discord.TextChannel, Room] = {}
+        self.__rooms: Dict[Room, discord.TextChannel] = {}
+        self.__logRooms: Dict[Room, discord.TextChannel] = {}
 
         # Initializes the Dictionary where functions corresponding to the commands are stored in
         self.command_handlers = {}
@@ -73,7 +75,7 @@ class EscapeRoom(object):
         self.bot.run(Settings.discordToken)
         return
 
-    def send_message(self, target: Union[Player, Room], content):
+    def send_message(self, target: Union[Player, "Room"], content):
         self.bot.send_message(Message(target, content))
         return
 
@@ -114,12 +116,12 @@ class EscapeRoom(object):
 
     # translates a discord channel into a game Room
     # returns None if that channel is not in the game
-    def discord_to_room(self, channel: discord.TextChannel) -> Room:
+    def discord_to_room(self, channel: discord.TextChannel) -> "Room":
         return self.__discordChannels.get(channel)
 
     # translates a Room user into a discord channel
     # returns None if that room is not in the game
-    def room_to_discord(self, room: Room) -> discord.TextChannel:
+    def room_to_discord(self, room: "Room") -> discord.TextChannel:
         return self.__rooms.get(room)
 
     # returns a list of all current Rooms
@@ -130,10 +132,10 @@ class EscapeRoom(object):
     def get_discord_channels(self):
         return self.__discordChannels.keys()
     
-    def get_log_channel(self, room: Room):
+    def get_log_channel(self, room: "Room"):
         return self.__logRooms[room]
 
-    async def setup_room(self, room: Room, category: discord.CategoryChannel=None):
+    async def setup_room(self, room: "Room", category: discord.CategoryChannel=None):
         if category == None:
             category = self.bot.server
 
