@@ -70,7 +70,7 @@ class EscapeRoom(object):
         return
 
     # Implements the help command
-    def help(caller: Player, command, content):
+    def help(self, caller: Player, command, content):
         logging.debug("{caller} has called the help function.".format(caller=caller))
         return
 
