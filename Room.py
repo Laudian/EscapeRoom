@@ -7,6 +7,7 @@ if False:
     from Player import Player
     from EscapeRoom import EscapeRoom
 
+
 class Room(object):
     # Subclasses should always call this in their initializer
     def __init__(self, name: str, game: "EscapeRoom"):
@@ -58,7 +59,8 @@ class Room(object):
         if player not in self.players:
             self.players.append(player)
             player.setRoom(self)
-            logging.info("Player {name} has entered room {room}".format(name=player, room=self))
+            self.log("{name} entered the room".format(name=player.name))
+            logging.info("Player {name} has entered room {room}".format(name=player.name, room=self.name))
         else:
             logging.error("Player {player} is already a member of room {room}".format(player=player.name, room=self.name))
             return None
@@ -69,6 +71,7 @@ class Room(object):
     def leave(self, player):
         if player in self.players:
             self.players.remove(player)
+            self.log("{name} left the room".format(name=player.name))
         else:
             logging.error("Player {player} is not a member of room {room}".format(player=player.name, room=self.name))
             return None
@@ -78,7 +81,7 @@ class Room(object):
     # of this by whispering to him
     def handle_invalid_command(self, caller, command, content):
         caller.send("This command is not available here. See !commands for a list of all commands "
-                            "available to you or !help to get more general information.")
+                    "available to you or !help to get more general information.")
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
@@ -103,5 +106,5 @@ class Room(object):
     def __repr__(self):
         return self.name
 
-    async def log(self, message: str):
-        await self.game.get_log_channel(self).send(message)
+    def log(self, message: str):
+        self.game.send_message(self, message, mtype=MessageType.LOG)

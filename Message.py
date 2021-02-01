@@ -5,6 +5,7 @@ from enum import Enum
 class MessageType(Enum):
     CHANNEL = 1
     PLAYER = 2
+    LOG = 3
 
 class Message(object):
     def __init__(self, target, content):

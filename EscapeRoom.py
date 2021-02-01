@@ -30,8 +30,12 @@ class EscapeRoom(object):
 
         # Dictionaries to translate between Rooms and Discord channels
         self.__discordChannels: Dict[discord.TextChannel, Room] = {}
-        self.__rooms: Dict[Room, discord.TextChannel] = {}
-        self.__logRooms: Dict[Room, discord.TextChannel] = {}
+        self.__roomsToDiscordText: Dict["Room", discord.TextChannel] = {}
+        self.__roomsToDiscordVoice: Dict["Room", discord.VoiceChannel] = {}
+        self.__logRooms: Dict["Room", discord.TextChannel] = {}
+
+        # Dictionary to identify rooms by name
+        self.__rooms: Dict[str, Room] = {}
 
         # Initializes the Dictionary where functions corresponding to the commands are stored in
         self.command_handlers = {}
@@ -66,7 +70,6 @@ class EscapeRoom(object):
         return
 
     # Implements the help command
-    @staticmethod
     def help(caller: Player, command, content):
         logging.debug("{caller} has called the help function.".format(caller=caller))
         return
@@ -75,8 +78,11 @@ class EscapeRoom(object):
         self.bot.run(Settings.discordToken)
         return
 
-    def send_message(self, target: Union[Player, "Room"], content):
-        self.bot.send_message(Message(target, content))
+    def send_message(self, target: Union[Player, "Room"], content, mtype=None):
+        if mtype == MessageType.LOG:
+            self.bot.send_message(Message(self.get_log_channel(target), content))
+        else:
+            self.bot.send_message(Message(self.room_to_discord(target), content))
         return
 
     # translates a discord user into a game player
@@ -97,7 +103,7 @@ class EscapeRoom(object):
     def get_discord_users(self):
         return self.__discordUsers.keys()
 
-    async def register_player(self, user: DiscordBot.user):
+    def register_player(self, user: DiscordBot.user):
         if user in self.get_discord_users():
             self.send_message(self.discord_to_player(user), "Du bist bereits angemeldet")
             self.discord_to_player(user).current_room\
@@ -108,10 +114,10 @@ class EscapeRoom(object):
             player = Player(user.name, self)
             self.__players[player] = user
             self.__discordUsers[user] = player
-            self.entrance.enter(player)
-            self.send_message(player.current_room, "{name} wurde erfolgreich angemeldet.".format(name=player.name))
-            await self.get_log_channel(player.current_room)\
-                .send("User {name} was registered".format(name=player.name))
+            self.get_room("Eingangshalle").enter(player)
+            player.current_room.send("{name} wurde erfolgreich angemeldet.".format(name=player.name))
+            player.current_room\
+                .log("User {name} was registered".format(name=player.name))
             return
 
     # translates a discord channel into a game Room
@@ -122,18 +128,21 @@ class EscapeRoom(object):
     # translates a Room user into a discord channel
     # returns None if that room is not in the game
     def room_to_discord(self, room: "Room") -> discord.TextChannel:
-        return self.__rooms.get(room)
+        return self.__roomsToDiscordText.get(room)
 
     # returns a list of all current Rooms
     def get_rooms(self):
-        return self.__rooms.keys()
+        return self.__roomsToDiscordText.keys()
+
+    def get_room(self, name: str):
+        return self.__rooms.get(name)
 
     # returns a list of all current discord Channels
     def get_discord_channels(self):
         return self.__discordChannels.keys()
-    
+
     def get_log_channel(self, room: "Room"):
-        return self.__logRooms[room]
+        return self.__logRooms.get(room)
 
     async def setup_room(self, room: "Room", category: discord.CategoryChannel=None):
         if category == None:
@@ -142,9 +151,10 @@ class EscapeRoom(object):
         channel = await category.create_text_channel(room.name, topic=room.topic)
         channel_log = await self.categorylog.create_text_channel(room.name + "_log")
         self.__discordChannels[channel] = room
-        self.__rooms[room] = channel
+        self.__roomsToDiscordText[room] = channel
         self.__logRooms[room] = channel_log
-        await room.log("{name} was created".format(name=room.name))
+        self.__rooms[room.name] = room
+        room.log("{name} was created".format(name=room.name))
 
     # Finds the channels corresponding to rooms by their channel-id one the Bot is ready
     async def setup_discord(self):
@@ -157,8 +167,8 @@ class EscapeRoom(object):
             self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
         })
 
-        self.entrance = Entrance(self)
-        await self.setup_room(self.entrance)
+        entrance = Entrance(self)
+        await self.setup_room(entrance)
 
         quizroom = Quizroom(self)
         await self.setup_room(quizroom, categoryrooms)

@@ -35,8 +35,8 @@ class DiscordBot(discord.Client):
 
     # someone sends a message anywhere the bot can read it
     async def on_message(self, message: discord.Message):
-        if message.content == Settings.commandPrefix + "register":
-            await self.controller.register_player(message.author)
+        if message.content.startswith(Settings.commandPrefix + "register"):
+            self.controller.register_player(message.author)
 
         elif message.content.startswith(Settings.commandPrefix):
             logging.debug("on_message event was triggered")
@@ -57,14 +57,8 @@ class DiscordBot(discord.Client):
             while self.enableMessaging:
                 try:
                     message = self.messageQueue.get(block=False)
-                    if message.target.message_type == MessageType.CHANNEL:
-                        target = self.controller.room_to_discord(message.target)
-                    elif message.target.message_type == MessageType.PLAYER:
-                        target = self.controller.player_to_discord(message.target)
-                    else:
-                        logging.debug("Message type unknown")
-                        continue
-                    await target.send(message.content)
+                    logging.debug("Message type unknown")
+                    await message.target.send(message.content)
                 except Empty:
                     break
             await asyncio.sleep(1)  # task runs every second
