@@ -98,8 +98,8 @@ class EscapeRoom(object):
     async def register_player(self, user: DiscordBot.user):
         if user in self.get_discord_users():
             self.send_message(self.discord_to_player(user), "Du bist bereits angemeldet")
-            self.get_log_channel(self.discord_to_player(user).current_room)\
-                .send("User tried to register but was already registered")
+            self.discord_to_player(user).current_room\
+                .log("User tried to register but was already registered")
             return
 
         else:
@@ -142,7 +142,7 @@ class EscapeRoom(object):
         self.__discordChannels[channel] = room
         self.__rooms[room] = channel
         self.__logRooms[room] = channel_log
-        await channel_log.send("{name} was created".format(name=room.name))
+        await room.log("{name} was created".format(name=room.name))
 
     # Finds the channels corresponding to rooms by their channel-id one the Bot is ready
     async def setup_discord(self):

@@ -2,12 +2,14 @@ import logging
 from Message import MessageType
 from typing import Dict, List
 
-if False:
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
     from Player import Player
+    from EscapeRoom import EscapeRoom
 
 class Room(object):
     # Subclasses should always call this in their initializer
-    def __init__(self, name, game):
+    def __init__(self, name: str, game: "EscapeRoom"):
         # The name of the room, used for text- and voicechannels for example
         self.name = name
         # A Dictionary of the commands available in this room
@@ -100,3 +102,6 @@ class Room(object):
 
     def __repr__(self):
         return self.name
+
+    async def log(self, message: str):
+        await self.game.get_log_channel(self).send(message)
