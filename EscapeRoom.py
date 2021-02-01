@@ -81,8 +81,12 @@ class EscapeRoom(object):
     def send_message(self, target: Union[Player, "Room"], content, mtype=None):
         if mtype == MessageType.LOG:
             self.bot.send_message(Message(self.get_log_channel(target), content))
-        else:
+        elif mtype == MessageType.CHANNEL:
             self.bot.send_message(Message(self.room_to_discord(target), content))
+        elif mtype == MessageType.PLAYER:
+            self.bot.send_message(Message(self.player_to_discord(target), content))
+        else:
+            logging.error("Unknown MessageType in sendMessage")
         return
 
     # translates a discord user into a game player

@@ -53,7 +53,7 @@ class Player(object):
 
     # Sends a message to this player, me be string or an image
     def send(self, message):
-        self.game.send_message(self, message)
+        self.game.send_message(self, message, MessageType.PLAYER)
         return
 
     @classmethod
