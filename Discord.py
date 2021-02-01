@@ -22,14 +22,18 @@ class DiscordBot(discord.Client):
 
     # logged in and prepared
     async def on_ready(self):
-        self.controller.register_rooms()
+        self.server: discord.Guild = self.get_guild(767358980241621012)  # discord Server
+        for channel in self.server.channels:
+            await channel.delete()
+
+        await self.controller.setup_discord()
         self.enableMessaging = True
         logging.info("Bot is online")
 
     # someone sends a message anywhere the bot can read it
     async def on_message(self, message: discord.Message):
         if message.content == Settings.commandPrefix + "register":
-            self.controller.register_player(message.author)
+            await self.controller.register_player(message.author)
 
         elif message.content.startswith(Settings.commandPrefix):
             logging.debug("on_message event was triggered")
@@ -62,7 +66,6 @@ class DiscordBot(discord.Client):
                     break
             await asyncio.sleep(1)  # task runs every second
 
-
-    def send_message(self, message : Message):
+    def send_message(self, message: Message):
         self.messageQueue.put(message)
         return

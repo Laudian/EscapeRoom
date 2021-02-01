@@ -1,5 +1,9 @@
 import logging
 from Message import MessageType
+from typing import Dict, List
+
+if False:
+    from Player import Player
 
 class Room(object):
     # Subclasses should always call this in their initializer
@@ -8,17 +12,19 @@ class Room(object):
         self.name = name
         # A Dictionary of the commands available in this room
         # "name" : "description"
-        self.commands = {}
+        self.commands: Dict[str, str] = {}
 
         # A list of players currently in this room
-        self.players = []
+        self.players: List[Player] = []
 
         # A Dictionary to keep track of permissions
         self.permissions =\
         {
-            "textchannel_available" : False,
-            "voicechannel_available": False
+            
         }
+        
+        # Topic for Discord Channel
+        self.topic = "Topic setzen"
 
         # Initializes the Dictionary where functions corresponding to the commands are stored in
         self.command_handlers = {}
@@ -31,7 +37,7 @@ class Room(object):
         self.permissions[name] = permission
         return
 
-    # Get a permissoin, returns None if permission is not set
+    # Get a permission, returns None if permission is not set
     def getPermission(self, name):
         return self.permissions.get(name, None)
 
@@ -52,7 +58,7 @@ class Room(object):
             player.setRoom(self)
             logging.info("Player {name} has entered room {room}".format(name=player, room=self))
         else:
-            # This should not happen. TODO: Probably log this in some error file
+            logging.error("Player {player} is already a member of room {room}".format(player=player.name, room=self.name))
             return None
         return True
 
@@ -62,7 +68,7 @@ class Room(object):
         if player in self.players:
             self.players.remove(player)
         else:
-            # This should not happen. TODO: Probably log this in some error file
+            logging.error("Player {player} is not a member of room {room}".format(player=player.name, room=self.name))
             return None
         return True
 
