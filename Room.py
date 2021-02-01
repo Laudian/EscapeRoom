@@ -74,15 +74,15 @@ class Room(object):
 
     # This Method is called if the command used is unavailable in this room. It will inform the player
     # of this by whispering to him
-    def invalidCommandHandler(self, caller, command, content):
+    def handle_invalid_command(self, caller, command, content):
         caller.send("This command is not available here. See !commands for a list of all commands "
                             "available to you or !help to get more general information.")
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    def handleCommand(self, caller, command, content=None):
-        self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
+    def handle_command(self, caller, command, content=None):
+        self.command_handlers.get(command, self.handle_invalid_command)(caller, command, content)
         return
 
     # Use this to register your own command functions
