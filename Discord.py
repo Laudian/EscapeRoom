@@ -64,7 +64,6 @@ class DiscordBot(discord.Client):
             while self.enableMessaging:
                 try:
                     message = self.messageQueue.get(block=False)
-                    logging.debug("Message type unknown")
                     await message.target.send(message.content)
                 except Empty:
                     break
