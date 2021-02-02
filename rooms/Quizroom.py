@@ -57,8 +57,9 @@ class Quizroom(Room):
     # get progress
     async def getProgress(self, player, command, content):
         progress = self.progress[player]
-        player.current_room.send("Du hast " + str(progress) + " von " + str(len(self.questions) - 1) + " Aufgaben gelöst" +
-                    " und bisher " + str(self.mistakes[player]) + "-mal falsch geantwortet.")
+        player.current_room.send("Du hast " + str(progress) + " von " + str(len(self.questions) - 1) +
+                                 " Aufgaben gelöst" + " und dabei " + str(self.mistakes[player]) +
+                                 "-mal falsch geantwortet.")
 
     # show current question
     async def getQuestion(self, player, command, content):
@@ -89,7 +90,7 @@ class Quizroom(Room):
             nextquestion = self.questions[progress + 1]
             player.current_room.send("Korrekt.\n" + nextquestion)
             if self. progress[player] + 1 == len(self.questions):
-                self.completed(player)
+                await self.completed(player)
         else:
             self.mistakes[player] += 1
             player.current_room.send("Das ist leider nicht richtig :frowning: oder vielleicht falsch eingeben? :thinking:\n" +
