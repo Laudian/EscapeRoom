@@ -32,17 +32,17 @@ class Player(object):
 
     # This Method is called if the command used is unavailable to this player
     # will try tio resolve this by calling caller.current_room.handleCommand()
-    def invalidCommandHandler(self, caller, command, content):
+    async def invalidCommandHandler(self, caller, command, content):
         logging.debug("4")
         logging.debug(self)
-        self.current_room.handle_command(caller, command, content)
+        await self.current_room.handle_command(caller, command, content)
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    def handleCommand(self, caller, command, content):
+    async def handleCommand(self, caller, command, content):
         logging.debug("3")
-        self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
+        await self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
         return
 
     def __eq__(self, other):

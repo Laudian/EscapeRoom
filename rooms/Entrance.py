@@ -1,6 +1,7 @@
 from Room import Room
 import logging
 
+# noinspection PyUnreachableCode
 if False:
     from Player import Player
 
@@ -11,18 +12,16 @@ class Entrance(Room):
         self.registerCommand("start", self.start, "This method starts the game.")
         return
 
-    def test(self, caller, command, content):
+    async def test(self, caller, command, content):
         logging.debug("Test was called in Entrance")
         self.send("Ich habe den !test Command erfolgreich erkannt.")
         return
 
-    def leave(self, player):
-        super().leave(player)
-        nextroom = self.game.get_room("Quiz")
-        nextroom.enter(player)
-
-    def start(self, caller: "Player", command, content):
+    async def start(self, caller: "Player", command, content):
+        self.log(str(self.getPlayers()))
         self.log("start called by " + caller.name)
         # move all players from Entrance to Their starting room
-        for player in self.getPlayers():
-            self.leave(player)
+        for player in list(self.getPlayers()):
+            await self.leave(player)
+            nextroom = self.game.get_room("Quiz")
+            await nextroom.enter(player)

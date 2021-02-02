@@ -33,6 +33,9 @@ class Room(object):
         self.command_handlers = {}
         self.message_type = MessageType.CHANNEL
         self.game = game
+        
+        # Register commands
+        self.registerCommand(None, self.handle_none, "")
         return
 
     # Set Permissions
@@ -53,9 +56,12 @@ class Room(object):
     def getCommands(self):
         return self.commands
 
+    async def handle_none(self, player, command, content):
+        pass
+
     # This method is called when a player enters a room and must be available
     # You should probably override this method
-    def enter(self, player):
+    async def enter(self, player):
         if player not in self.players:
             self.players.append(player)
             player.setRoom(self)
@@ -63,31 +69,29 @@ class Room(object):
             logging.info("Player {name} has entered room {room}".format(name=player.name, room=self.name))
         else:
             logging.error("Player {player} is already a member of room {room}".format(player=player.name, room=self.name))
-            return None
-        return True
+        return
 
     # This method is called when a player leaves a room and must always be available
     # You may want to override this method
-    def leave(self, player):
+    async def leave(self, player):
         if player in self.players:
             self.players.remove(player)
             self.log("{name} left the room".format(name=player.name))
         else:
             logging.error("Player {player} is not a member of room {room}".format(player=player.name, room=self.name))
-            return None
-        return True
+        return
 
     # This Method is called if the command used is unavailable in this room. It will inform the player
     # of this by whispering to him
-    def handle_invalid_command(self, caller, command, content):
+    async def handle_invalid_command(self, caller, command, content):
         caller.send("This command is not available here. See !commands for a list of all commands "
                     "available to you or !help to get more general information.")
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    def handle_command(self, caller, command, content=None):
-        self.command_handlers.get(command, self.handle_invalid_command)(caller, command, content)
+    async def handle_command(self, caller, command, content=None):
+        await self.command_handlers.get(command, self.handle_invalid_command)(caller, command, content)
         return
 
     # Use this to register your own command functions

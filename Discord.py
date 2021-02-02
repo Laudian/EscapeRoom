@@ -35,17 +35,24 @@ class DiscordBot(discord.Client):
 
     # someone sends a message anywhere the bot can read it
     async def on_message(self, message: discord.Message):
+        if message.author == self.user:
+            return
         if message.content.startswith(Settings.commandPrefix + "register"):
-            self.controller.register_player(message.author)
+            content = message.content.strip(Settings.commandPrefix + "register").strip(" ")
+            if content == "":
+                content = None
+            await self.controller.register_player(message.author, content)
 
         elif message.content.startswith(Settings.commandPrefix):
-            logging.debug("on_message event was triggered")
+            logging.debug("Command Prefix Detected: " + message.content)
             split = message.content.split(" ", 1)
             command = split[0].lstrip("!")
             content = None if len(split) < 2 else split[1]
-            self.controller.handle_command(message.author, command, content)
-            await asyncio.sleep(5)
-            await message.delete()
+            await self.controller.handle_command(message.author, command, content)
+            # await asyncio.sleep(5)
+            # await message.delete()
+        else:
+            await self.controller.handle_command(message.author, None, message.content)
 
     # someone adds a reaction anywhere the bot can see it
     async def on_raw_reaction_add(self, payload):
