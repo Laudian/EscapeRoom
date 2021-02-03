@@ -124,12 +124,8 @@ class EscapeRoom(object):
 
     async def register(self, user: discord.Member, command: str, content: str):
         if content != "":
-            caller = self.discord_to_player(user)
-            if caller is None:
-                self.get_room("Eingangshalle").send("Schreibe !register um dich für das Spiel anzumelden.")
-                return
-            if not caller.check_rank(Rank.MOD):
-                caller.currentRoom.send("Da musst Moderator sein, um andere Spieler anzumelden.")
+            if not (self.roleModerator in user.roles or self.roleAdmin in user.roles):
+                self.get_room("Eingangshalle").send("Da musst Moderator sein, um andere Spieler anzumelden.")
                 return
             dcid = content.strip("<@").strip(">").strip("!")
             mention = await self.bot.server.fetch_member(int(dcid))
