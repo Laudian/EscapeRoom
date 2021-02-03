@@ -1,6 +1,10 @@
 import logging
 from Message import *
 
+# noinspection PyUnreachableCode
+if False:
+    from Room import Room
+
 class Player(object):
     id = 0
     def __init__(self, name, game):

@@ -65,6 +65,7 @@ class Room(object):
         if player not in self.players:
             self.players.append(player)
             player.setRoom(self)
+            await self.game.show_room(self, player)
             self.log("{name} entered the room".format(name=player.name))
             logging.info("Player {name} has entered room {room}".format(name=player.name, room=self.name))
         else:
@@ -76,6 +77,8 @@ class Room(object):
     async def leave(self, player):
         if player in self.players:
             self.players.remove(player)
+            player.setRoom(None)
+            await self.game.hide_room(self, player)
             self.log("{name} left the room".format(name=player.name))
         else:
             logging.error("Player {player} is not a member of room {room}".format(player=player.name, room=self.name))
@@ -112,3 +115,4 @@ class Room(object):
 
     def log(self, message: str):
         self.game.send_message(self, message, mtype=MessageType.LOG)
+

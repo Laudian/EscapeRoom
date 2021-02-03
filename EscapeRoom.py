@@ -5,7 +5,7 @@ from rooms import Quizroom, Entrance
 from Player import Player
 from Message import *
 from typing import Dict, Union
-import discord, threading
+import discord
 
 # noinspection PyUnreachableCode
 if False:
@@ -177,18 +177,44 @@ class EscapeRoom(object):
     async def setup_discord(self):
         self.categoryrooms: discord.CategoryChannel = await self.bot.server.create_category("Rooms", overwrites=
         {
-            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=True),
+            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
         })
         self.categorylog: discord.CategoryChannel = await self.bot.server.create_category("Log", overwrites=
         {
             self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
         })
 
+        self.roleunregistered = self.bot.server.get_role(Settings.idRoleUnregistered)
+        self.roleregistered = self.bot.server.get_role(Settings.idRoleRegistered)
+
+        print(self.bot.server.members)
+        for member in self.bot.server.members:
+            await member.remove_roles(self.roleregistered)
+            await member.add_roles(self.roleunregistered)
+
         entrance = Entrance(self)
         await self.setup_room(entrance)
 
         quizroom = Quizroom(self)
         await self.setup_room(quizroom, self.categoryrooms)
+
+    # Used to make a discord channel visible to players
+    async def show_room(self, room: "Room", player: Player):
+        channel = self.room_to_discord(room)
+        member = self.player_to_discord(player)
+        await channel.set_permissions(member, overwrites=
+        {
+            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=True),
+        })
+
+    # Used to make a discord channel invisible to players
+    async def hide_room(self, room: "Room", player: Player):
+        channel = self.room_to_discord(room)
+        member = self.player_to_discord(player)
+        await channel.set_permissions(member, overwrites=
+        {
+            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
+        })
 
 
 game = EscapeRoom()

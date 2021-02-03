@@ -54,6 +54,9 @@ class DiscordBot(discord.Client):
         else:
             await self.controller.handle_command(message.author, None, message.content)
 
+    async def on_member_join(self, member: discord.Member):
+        await member.add_roles(self.controller.roleunregistered)
+
     # someone adds a reaction anywhere the bot can see it
     async def on_raw_reaction_add(self, payload):
         pass
