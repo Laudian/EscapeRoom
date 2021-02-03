@@ -3,7 +3,6 @@ from .PrivateRoom import PrivateRoom
 import logging
 
 
-
 class Quizroom(Room):
     def __init__(self, game):
         super().__init__("Quiz", game)
@@ -34,12 +33,12 @@ class Quizroom(Room):
         self.registerCommand("progress", self.getProgress, "Fortschritt anzeigen - Quizroom")
         self.registerCommand("question", self.getQuestion, "Frage anzeigen - Quizroom")
         self.registerCommand("answer", self.giveAnswer, "Antwort eingeben - Quizroom")
-        self.registerCommand(None, self.handle_none, "Du kannst die antwort auf die Frage auch ohne Prefix eingeben.")
+        self.registerCommand(None, self.handle_none, "Du kannst die Antwort auf die Frage auch ohne Prefix eingeben.")
 
     # private
     # starting test at player joining
     async def enter(self, player):
-        private = PrivateRoom(self, " "+player.name)
+        private = PrivateRoom(self, " " + player.name)
         await private.setup()
         await private.enter(player)
         private.send(self.starttext)
@@ -67,6 +66,7 @@ class Quizroom(Room):
         question = self.questions[progress]
         player.current_room.send(question)
 
+    # give answer without prefix
     async def handle_none(self, player, command, content):
         progress = self.progress[player]
         given_answer = (str(content).lower()).replace(" ", "")
@@ -93,5 +93,5 @@ class Quizroom(Room):
                 await self.completed(player)
         else:
             self.mistakes[player] += 1
-            player.current_room.send("Das ist leider nicht richtig :frowning: oder vielleicht falsch eingeben? :thinking:\n" +
-                        "Probiers nochmal")
+            player.current_room.send("Das ist leider nicht richtig :frowning: oder vielleicht falsch eingeben?" +
+                                     " :thinking:\n Probiers nochmal")
