@@ -110,7 +110,7 @@ class EscapeRoom(object):
     def get_discord_users(self):
         return self.__discordUsers.keys()
 
-    async def register_player(self, user: DiscordBot.user, content=None):
+    async def register_player(self, user: discord.Member, content=None):
         if content is not None:
             id = content.strip("<@").strip(">").strip("!")
             mention = self.bot.get_user(int(id))
@@ -130,6 +130,8 @@ class EscapeRoom(object):
         self.__players[player] = user
         self.__discordUsers[user] = player
         await self.get_room("Eingangshalle").enter(player)
+        await user.remove_roles(self.roleunregistered)
+        await user.add_roles(self.roleregistered)
         player.current_room.send("{name} wurde erfolgreich angemeldet.".format(name=player.name))
         player.current_room\
             .log("User {name} was registered".format(name=player.name))

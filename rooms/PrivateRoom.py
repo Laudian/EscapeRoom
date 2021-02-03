@@ -1,5 +1,4 @@
 from Room import Room
-import asyncio
 
 
 class PrivateRoom(Room):
@@ -18,7 +17,7 @@ class PrivateRoom(Room):
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
-    # Usually,  every command should have it's own function which is accessed via a dicitonary
+    # Usually,  every command should have it's own function which is accessed via a dictionary
     async def handle_command(self, caller, command, content=None):
         await self.parent.handle_command(caller, command, content)
         return
