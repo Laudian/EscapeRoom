@@ -48,7 +48,11 @@ class Quizroom(Room):
 
     async def completed(self, player):
         await self.getProgress(player, None, None)
+        private = player.current_room
+        await private.leave(player)
         # TODO: add rewards for completing like e.g. permission for next room
+        nextroom = self.game.get_room("Eingangshalle")
+        await nextroom.enter(player)
         self.progress[player] = 0
         self.mistakes[player] = 0
 
