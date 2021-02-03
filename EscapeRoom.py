@@ -187,8 +187,7 @@ class EscapeRoom(object):
         self.roleunregistered = self.bot.server.get_role(Settings.idRoleUnregistered)
         self.roleregistered = self.bot.server.get_role(Settings.idRoleRegistered)
 
-        print(self.bot.server.members)
-        for member in self.bot.server.members:
+        async for member in self.bot.server.fetch_members():
             await member.remove_roles(self.roleregistered)
             await member.add_roles(self.roleunregistered)
 
@@ -202,19 +201,13 @@ class EscapeRoom(object):
     async def show_room(self, room: "Room", player: Player):
         channel = self.room_to_discord(room)
         member = self.player_to_discord(player)
-        await channel.set_permissions(member, overwrites=
-        {
-            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=True),
-        })
+        await channel.set_permissions(member, read_messages=True)
 
     # Used to make a discord channel invisible to players
     async def hide_room(self, room: "Room", player: Player):
         channel = self.room_to_discord(room)
         member = self.player_to_discord(player)
-        await channel.set_permissions(member, overwrites=
-        {
-            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
-        })
+        await channel.set_permissions(member, read_messages=False)
 
 
 game = EscapeRoom()

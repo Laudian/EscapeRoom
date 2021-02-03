@@ -15,7 +15,7 @@ class Quizroom(Room):
         # questions
         self.questions = ("Hier ist deine erste Frage:\n" + "789 + 212 =",
                           "Nächste Frage:\n" + "13 x 3=",
-                          "Nächste Frage:\n" + "Salz  in Wasser ist eine",
+                          "Nächste Frage:\n" + "Salz in Wasser ist eine",
                           "Nächste Frage:\n" + "In welchem englischen Buch kann man sein Gesicht mit anderen teilen?",
                           "Nächste Frage:\n" + "Wie viele Stunden hat der vierte Monat eines Jahres?",
                           "Letzte Frage:\n" + "Welches Wort versteckt sich in diesem Anagram: settinggenus :grin:",
