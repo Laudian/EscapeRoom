@@ -8,7 +8,7 @@ class PrivateRoom(Room):
         self.topic = parent.topic
 
     async def setup(self):
-        await self.parent.game.setup_room(self, self.parent.game.categoryrooms, self.parent)
+        await self.parent.game.setup_room(self, self.parent.game.categoryRooms, self.parent)
 
     # This Method is called if the command used is unavailable in this room. It will inform the player
     # of this by whispering to him
@@ -22,7 +22,7 @@ class PrivateRoom(Room):
         await self.parent.handle_command(caller, command, content)
         return
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.parent.name
 
     def log(self, message: str):

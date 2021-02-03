@@ -8,3 +8,5 @@ discord_token = "12345"
 commandPrefix = "!"
 idRoleRegistered = 12345
 idRoleUnregistered = 12345
+idRoleModerator = 12345
+idRoleAdmin = 12345

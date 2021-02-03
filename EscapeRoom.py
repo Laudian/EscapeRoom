@@ -2,9 +2,9 @@ import logging
 import Settings_local as Settings
 from Discord import DiscordBot
 from rooms import Quizroom, Entrance
-from Player import Player
+from Player import Player, Rank
 from Message import *
-from typing import Dict, Union
+from typing import Dict, Union, List
 import discord
 
 # noinspection PyUnreachableCode
@@ -25,8 +25,8 @@ class EscapeRoom(object):
         self.commands = {}
 
         # Dictionaries to translate between Players and Discord users
-        self.__players: Dict[Player, DiscordBot.user] = {}
-        self.__discordUsers: Dict[DiscordBot.user, Player] = {}
+        self.__players: Dict[Player, discord.Member] = {}
+        self.__discordUsers: Dict[discord.Member, Player] = {}
 
         # Dictionaries to translate between Rooms and Discord channels
         self.__discordChannels: Dict[discord.TextChannel, Room] = {}
@@ -42,6 +42,15 @@ class EscapeRoom(object):
 
         # Commands are registered here
         self.register_command("help", self.help, "Explains how to play the game.")
+        self.register_command("register", self.register, "Register to the game by writing !register.")
+
+        # Roles and Categories, will be initializes when bot is ready
+        self.categoryRooms = None
+        self.categoryLog = None
+        self.roleRegistered = None
+        self.roleUnregistered = None
+        self.roleModerator = None
+        self.roleAdmin = None
 
         # Starting the Discord Bot
         self.bot = DiscordBot(self)
@@ -58,18 +67,21 @@ class EscapeRoom(object):
     # This Method is called if the command used is unavailable in the general game.
     # will try tio resolve this by calling caller.handleCommand()
     async def handle_invalid_command(self, caller: Player, command, content):
-        logging.debug("2")
-        await caller.handleCommand(caller, command, content)
+        await caller.handle_command(caller, command, content)
         return
 
     # This method handles commands that players use and should be called by the Discord module
     # Usually, every command should have it's own function which is accessed via a dict
-    async def handle_command(self, caller: DiscordBot.user, command, content: str):
-        player = self.discord_to_player(caller)
-        if player is None:
-            return
+    async def handle_command(self, caller: discord.Member, command, content: str):
         handler = self.command_handlers.get(command, self.handle_invalid_command)
-        await handler(player, command, content)
+        if command == "register":
+            await handler(caller, command, content)
+        else:
+            player = self.discord_to_player(caller)
+            if player is None:
+                return
+            else:
+                await handler(player, command, content)
         return
 
     # Implements the help command
@@ -94,12 +106,12 @@ class EscapeRoom(object):
 
     # translates a discord user into a game player
     # returns None if that user is not in the game
-    def discord_to_player(self, user: DiscordBot.user) -> Player:
+    def discord_to_player(self, user: discord.Member) -> Player:
         return self.__discordUsers.get(user)
 
     # translates a Player user into a Discord User
     # returns None if that user is not in the game
-    def player_to_discord(self, player: Player) -> DiscordBot.user:
+    def player_to_discord(self, player: Player) -> discord.Member:
         return self.__players.get(player)
 
     # returns a list of all current players
@@ -110,19 +122,26 @@ class EscapeRoom(object):
     def get_discord_users(self):
         return self.__discordUsers.keys()
 
-    async def register_player(self, user: discord.Member, content=None):
-        if content is not None:
-            id = content.strip("<@").strip(">").strip("!")
-            mention = self.bot.get_user(int(id))
+    async def register(self, user: discord.Member, command: str, content: str):
+        if content != "":
+            caller = self.discord_to_player(user)
+            if caller is None:
+                self.get_room("Eingangshalle").send("Schreibe !register um dich für das Spiel anzumelden.")
+                return
+            if not caller.check_rank(Rank.MOD):
+                caller.currentRoom.send("Da musst Moderator sein, um andere Spieler anzumelden.")
+                return
+            dcid = content.strip("<@").strip(">").strip("!")
+            mention = await self.bot.server.fetch_member(int(dcid))
             if mention is None:
-                self.get_room("Eingangshalle").log("The mentioned User does not exist: " + id)
+                self.get_room("Eingangshalle").log("The mentioned User does not exist: " + dcid)
                 return
             else:
                 user = mention
         else:
             if user in self.get_discord_users():
                 self.discord_to_player(user).send("Du bist bereits angemeldet")
-                self.discord_to_player(user).current_room\
+                self.discord_to_player(user).currentRoom\
                     .log("User tried to register but was already registered")
                 return
 
@@ -130,10 +149,11 @@ class EscapeRoom(object):
         self.__players[player] = user
         self.__discordUsers[user] = player
         await self.get_room("Eingangshalle").enter(player)
-        await user.remove_roles(self.roleunregistered)
-        await user.add_roles(self.roleregistered)
-        player.current_room.send("{name} wurde erfolgreich angemeldet.".format(name=player.name))
-        player.current_room\
+        await user.remove_roles(self.roleUnregistered)
+        await user.add_roles(self.roleRegistered)
+        player.set_rank(await self.get_rank(player))
+        player.currentRoom.send("{name} wurde erfolgreich angemeldet.".format(name=player.name))
+        player.currentRoom\
             .log("User {name} was registered".format(name=player.name))
         return
 
@@ -148,17 +168,17 @@ class EscapeRoom(object):
         return self.__roomsToDiscordText.get(room)
 
     # returns a list of all current Rooms
-    def get_rooms(self):
-        return self.__roomsToDiscordText.keys()
+    def get_rooms(self) -> List["Room"]:
+        return list(self.__roomsToDiscordText.keys())
 
-    def get_room(self, name: str):
+    def get_room(self, name: str) -> "Room":
         return self.__rooms.get(name)
 
     # returns a list of all current discord Channels
-    def get_discord_channels(self):
-        return self.__discordChannels.keys()
+    def get_discord_channels(self) -> List[discord.TextChannel]:
+        return list(self.__discordChannels.keys())
 
-    def get_log_channel(self, room: "Room"):
+    def get_log_channel(self, room: "Room") -> discord.TextChannel:
         return self.__logRooms.get(room)
 
     async def setup_room(self, room: 'Room', category: discord.CategoryChannel = None, parent: "Room" = None):
@@ -166,7 +186,7 @@ class EscapeRoom(object):
             category = self.bot.server
 
         if parent is None:
-            channel_log = await self.categorylog.create_text_channel(room.name + "_log")
+            channel_log = await self.categoryLog.create_text_channel(room.name + "_log")
             self.__logRooms[room] = channel_log
             self.__rooms[room.name] = room
 
@@ -177,27 +197,29 @@ class EscapeRoom(object):
 
     # Creates the discord channels for all the rooms used
     async def setup_discord(self):
-        self.categoryrooms: discord.CategoryChannel = await self.bot.server.create_category("Rooms", overwrites=
+        self.categoryRooms: discord.CategoryChannel = await self.bot.server.create_category("Rooms", overwrites=
         {
             self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
         })
-        self.categorylog: discord.CategoryChannel = await self.bot.server.create_category("Log", overwrites=
+        self.categoryLog: discord.CategoryChannel = await self.bot.server.create_category("Log", overwrites=
         {
             self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
         })
 
-        self.roleunregistered = self.bot.server.get_role(Settings.idRoleUnregistered)
-        self.roleregistered = self.bot.server.get_role(Settings.idRoleRegistered)
+        self.roleUnregistered = self.bot.server.get_role(Settings.idRoleUnregistered)
+        self.roleRegistered = self.bot.server.get_role(Settings.idRoleRegistered)
+        self.roleModerator = self.bot.server.get_role(Settings.idRoleModerator)
+        self.roleAdmin = self.bot.server.get_role(Settings.idRoleAdmin)
 
         async for member in self.bot.server.fetch_members():
-            await member.remove_roles(self.roleregistered)
-            await member.add_roles(self.roleunregistered)
+            await member.remove_roles(self.roleRegistered)
+            await member.add_roles(self.roleUnregistered)
 
         entrance = Entrance(self)
         await self.setup_room(entrance)
 
         quizroom = Quizroom(self)
-        await self.setup_room(quizroom, self.categoryrooms)
+        await self.setup_room(quizroom, self.categoryRooms)
 
     # Used to make a discord channel visible to players
     async def show_room(self, room: "Room", player: Player):
@@ -210,6 +232,17 @@ class EscapeRoom(object):
         channel = self.room_to_discord(room)
         member = self.player_to_discord(player)
         await channel.set_permissions(member, read_messages=False)
+
+    async def get_rank(self, player: Player) -> Rank:
+        user = self.player_to_discord(player)
+        if self.roleAdmin in user.roles:
+            return Rank.ADMIN
+        elif self.roleModerator in user.roles:
+            return Rank.MOD
+        elif self.roleRegistered in user.roles:
+            return Rank.REGISTERED
+        else:
+            return Rank.UNREGISTERED
 
 
 game = EscapeRoom()

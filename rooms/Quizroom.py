@@ -30,10 +30,10 @@ class Quizroom(Room):
                         "Eignungstest")
 
         # register commands
-        self.registerCommand("progress", self.getProgress, "Fortschritt anzeigen - Quizroom")
-        self.registerCommand("question", self.getQuestion, "Frage anzeigen - Quizroom")
-        self.registerCommand("answer", self.giveAnswer, "Antwort eingeben - Quizroom")
-        self.registerCommand(None, self.handle_none, "Du kannst die Antwort auf die Frage auch ohne Prefix eingeben.")
+        self.register_command("progress", self.getProgress, "Fortschritt anzeigen - Quizroom")
+        self.register_command("question", self.getQuestion, "Frage anzeigen - Quizroom")
+        self.register_command("answer", self.giveAnswer, "Antwort eingeben - Quizroom")
+        self.register_command(None, self.handle_none, "Du kannst die Antwort auf die Frage auch ohne Prefix eingeben.")
 
     # private
     # starting test at player joining
@@ -48,7 +48,7 @@ class Quizroom(Room):
 
     async def completed(self, player):
         await self.getProgress(player, None, None)
-        private = player.current_room
+        private = player.currentRoom
         await private.leave(player)
         # TODO: add rewards for completing like e.g. permission for next room
         nextroom = self.game.get_room("Eingangshalle")
@@ -60,7 +60,7 @@ class Quizroom(Room):
     # get progress
     async def getProgress(self, player, command, content):
         progress = self.progress[player]
-        player.current_room.send("Du hast " + str(progress) + " von " + str(len(self.questions) - 1) +
+        player.currentRoom.send("Du hast " + str(progress) + " von " + str(len(self.questions) - 1) +
                                  " Aufgaben gelöst" + " und dabei " + str(self.mistakes[player]) +
                                  "-mal falsch geantwortet.")
 
@@ -68,7 +68,7 @@ class Quizroom(Room):
     async def getQuestion(self, player, command, content):
         progress = self.progress[player]
         question = self.questions[progress]
-        player.current_room.send(question)
+        player.currentRoom.send(question)
 
     # give answer without prefix
     async def handle_none(self, player, command, content):
@@ -79,7 +79,7 @@ class Quizroom(Room):
         if given_answer == right_answer:
             self.progress[player] += 1
             nextquestion = self.questions[progress + 1]
-            player.current_room.send("Korrekt.\n" + nextquestion)
+            player.currentRoom.send("Korrekt.\n" + nextquestion)
             if self.progress[player] + 1 == len(self.questions):
                 await self.completed(player)
 
@@ -92,10 +92,10 @@ class Quizroom(Room):
         if given_answer == right_answer:
             self.progress[player] += 1
             nextquestion = self.questions[progress + 1]
-            player.current_room.send("Korrekt.\n" + nextquestion)
+            player.currentRoom.send("Korrekt.\n" + nextquestion)
             if self. progress[player] + 1 == len(self.questions):
                 await self.completed(player)
         else:
             self.mistakes[player] += 1
-            player.current_room.send("Das ist leider nicht richtig :frowning: oder vielleicht falsch eingeben?" +
+            player.currentRoom.send("Das ist leider nicht richtig :frowning: oder vielleicht falsch eingeben?" +
                                      " :thinking:\n Probiers nochmal")

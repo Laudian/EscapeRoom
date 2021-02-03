@@ -1,17 +1,33 @@
 import logging
 from Message import *
+from enum import Enum
+from typing import Dict, Callable
+from threading import Lock
 
 # noinspection PyUnreachableCode
 if False:
     from Room import Room
+    from EscapeRoom import EscapeRoom
+    from Message import MessageType
+
+
+class Rank(Enum):
+    UNREGISTERED = 0
+    REGISTERED = 1
+    MOD = 2
+    ADMIN = 3
+
 
 class Player(object):
     id = 0
-    def __init__(self, name, game):
-        self.id = Player.getId()
-        self.name = name
-        self.current_room = None
-        self.message_type = MessageType.PLAYER
+    idLock = Lock()
+
+    def __init__(self, name: str, game: "EscapeRoom"):
+        self.id: int = Player.get_id()
+        self.name: str = name
+        self.currentRoom: "Room" = None
+        self.messageType: "MessageType" = MessageType.PLAYER
+        self.__rank: Rank = Rank.UNREGISTERED
         logging.info("Player {name} has joined the game, ID is {id}.".format(name=name, id=self.id))
         self.game = game
 
@@ -23,46 +39,45 @@ class Player(object):
         self.command_handlers = {}
 
         # Commands are registered here
-        #self.registerCommand("help", self.help, "Explains how to play the game.")
+        # self.registerCommand("help", self.help, "Explains how to play the game.")
         return
 
     # Use this to register your own command functions
     # Function should have the form handler(self, caller, content), where caller is a Player object
     # Name should be without the commandprefix (e.g. help, not !help)
-    def registerCommand(self, name, function, description):
+    def register_command(self, name: str, function: Callable, description: str):
         self.commands[name] = description
         self.command_handlers[name] = function
         return
 
     # This Method is called if the command used is unavailable to this player
     # will try tio resolve this by calling caller.current_room.handleCommand()
-    async def invalidCommandHandler(self, caller, command, content):
-        logging.debug("4")
-        logging.debug(self)
-        await self.current_room.handle_command(caller, command, content)
+    async def handle_invalid_command(self, caller: "Player", command: str, content: str):
+        await self.currentRoom.handle_command(caller, command, content)
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    async def handleCommand(self, caller, command, content):
-        logging.debug("3")
-        await self.command_handlers.get(command, self.invalidCommandHandler)(caller, command, content)
+    async def handle_command(self, caller: "Player", command: str, content: str):
+        await self.command_handlers.get(command, self.handle_invalid_command)(caller, command, content)
         return
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Player") -> bool:
         return self.id == other.id
 
-    def __ne__(self, other):
+    def __ne__(self, other: "Player") -> bool:
         return not self == other
 
     # Sends a message to this player, me be string or an image
-    def send(self, message):
+    def send(self, message: str):
         self.game.send_message(self, message, MessageType.PLAYER)
         return
 
     @classmethod
-    def getId(cls):
+    def get_id(cls) -> int:
+        cls.idLock.acquire()
         cls.id += 1
+        cls.idLock.release()
         return cls.id
 
     def __hash__(self):
@@ -71,5 +86,11 @@ class Player(object):
     def __repr__(self):
         return self.name + ":" + str(self.id)
 
-    def setRoom(self, room):
-        self.current_room = room
+    def set_room(self, room: "Room"):
+        self.currentRoom = room
+
+    def check_rank(self, rank: Rank) -> bool:
+        return self.__rank.value >= rank.value
+
+    def set_rank(self, rank: Rank):
+        self.__rank = rank

@@ -33,38 +33,38 @@ class Room(object):
         self.command_handlers = {}
         self.message_type = MessageType.CHANNEL
         self.game = game
-        
+
         # Register commands
-        self.registerCommand(None, self.handle_none, "")
+        self.register_command(None, self.handle_none, "")
         return
 
     # Set Permissions
-    def setPermission(self, name, permission):
+    def set_permission(self, name: str, permission: bool):
         self.permissions[name] = permission
         return
 
     # Get a permission, returns None if permission is not set
-    def getPermission(self, name):
+    def get_permission(self, name: str) -> bool:
         return self.permissions.get(name, None)
 
     # Usually returns self.players, but may be overridden to include subrooms
-    def getPlayers(self):
+    def get_players(self) -> List["Player"]:
         return self.players
 
     # Used to view the commands made available by this room, for example to
     # show which commands are available to the player.
-    def getCommands(self):
+    def get_commands(self) -> Dict[str, str]:
         return self.commands
 
-    async def handle_none(self, player, command, content):
-        pass
+    async def handle_none(self, player: "Player", command: str, content: str):
+        return
 
     # This method is called when a player enters a room and must be available
     # You should probably override this method
-    async def enter(self, player):
+    async def enter(self, player: "Player"):
         if player not in self.players:
             self.players.append(player)
-            player.setRoom(self)
+            player.set_room(self)
             await self.game.show_room(self, player)
             self.log("{name} entered the room".format(name=player.name))
             logging.info("Player {name} has entered room {room}".format(name=player.name, room=self.name))
@@ -74,10 +74,10 @@ class Room(object):
 
     # This method is called when a player leaves a room and must always be available
     # You may want to override this method
-    async def leave(self, player):
+    async def leave(self, player: "Player"):
         if player in self.players:
             self.players.remove(player)
-            player.setRoom(None)
+            player.set_room(None)
             await self.game.hide_room(self, player)
             self.log("{name} left the room".format(name=player.name))
         else:
@@ -86,21 +86,21 @@ class Room(object):
 
     # This Method is called if the command used is unavailable in this room. It will inform the player
     # of this by whispering to him
-    async def handle_invalid_command(self, caller, command, content):
+    async def handle_invalid_command(self, caller: "Player", command: str, content: str):
         caller.send("This command is not available here. See !commands for a list of all commands "
                     "available to you or !help to get more general information.")
         return
 
     # This method handles commands that players use and should be called by the game commandHandler
     # Usually,  every command should have it's own function which is accessed via a dicitonary
-    async def handle_command(self, caller, command, content=None):
+    async def handle_command(self, caller: "Player", command: str, content: str = None):
         await self.command_handlers.get(command, self.handle_invalid_command)(caller, command, content)
         return
 
     # Use this to register your own command functions
     # Function should have the form handler(self, caller, content), where caller is a Player object
     # Name should be without the commandprefix (e.g. help, not !help)
-    def registerCommand(self, name, function, description):
+    def register_command(self, name, function, description):
         self.commands[name] = description
         self.command_handlers[name] = function
         return
