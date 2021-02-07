@@ -12,7 +12,6 @@ class Caveentrance(Room):
         self.buttons = {0: [0, 1, 2, 3, 6], 1: [0, 1, 2, 4, 7], 2: [0, 1, 2, 5, 8],
                         3: [3, 4, 5, 0, 6], 4: [3, 4, 5, 1, 7], 5: [3, 4, 5, 2, 8],
                         6: [6, 7, 8, 0, 3], 7: [6, 7, 8, 1, 4], 8: [6, 7, 8, 2, 5]}
-        self.player_list = []
 
         # register commands
         self.register_command("button", self.pushButton, "Eigenen Knopf drücken - Höhleneingang")
@@ -21,22 +20,23 @@ class Caveentrance(Room):
         message = ""
         for x in range(9):
             if self.torches[x]:
-                message += ":orange_circle:"
+                message += "O"
             else:
-                message += ":black_circle:"
+                message += "X"
             if x % 3 == 2:
                 message += "\n"
-        player.send(message)
+        self.send(message)
 
     async def enter(self, player):
-        self.player_list.append(player)
-        if len(self.player_list) == 8:
-            player.currentRoom.send()
+        await super().enter(player)
+        if len(self.players) == 8:
+            await self.printTorches(player)
+        else:
+            self.send("Warte auf weitere Spieler")
 
     async def pushButton(self, player, command, content):
-        button_number = self.player_list.index(player)
+        button_number = self.players.index(player)
         changing_torches = self.buttons[button_number]
         for torch in changing_torches:
             self.torches[torch] = not self.torches[torch]
         await self.printTorches(player)
-
