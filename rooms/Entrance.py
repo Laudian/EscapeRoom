@@ -24,5 +24,5 @@ class Entrance(Room):
         # move all players from Entrance to Their starting room
         for player in list(self.get_players()):
             await self.leave(player)
-            nextroom = self.game.get_room("Quiz")
+            nextroom = self.game.get_room("Höhleneingang")
             await nextroom.enter(player)
