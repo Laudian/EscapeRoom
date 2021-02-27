@@ -6,8 +6,8 @@ class Caveentrance(Room):
     def __init__(self, game):
         super().__init__("Höhleneingang", game)
         # variables
-        self.torches = {0: False, 1: False, 2: False, 3: False,
-                        4: False, 5: False, 6: False, 7: False}
+        self.torches = {0: 2, 1: 0, 2: 0, 3: 2,
+                        4: 0, 5: 0, 6: 2, 7: 0}
         self.buttons = {0: [0, 1, 2, 3, 4], 1: [0, 1, 2, 3, 5], 2: [0, 1, 2, 3, 6], 3: [0, 1, 2, 3, 7],
                         4: [4, 5, 6, 7, 0], 5: [4, 5, 6, 7, 1], 6: [4, 5, 6, 7, 2], 7: [4, 5, 6, 7, 3]}
 
@@ -17,10 +17,12 @@ class Caveentrance(Room):
     async def printTorches(self):
         message = ""
         for x in range(8):
-            if self.torches[x]:
-                message += "O"
+            if self.torches[x] == 0:
+                message += ":wood:"
+            elif self.torches[x] == 1:
+                message += ":dash:"
             else:
-                message += "X"
+                message += ":fire:"
             if x % 4 == 3:
                 message += "\n"
         self.send(message)
@@ -36,8 +38,9 @@ class Caveentrance(Room):
         button_number = self.players.index(player)
         changing_torches = self.buttons[button_number]
         for torch in changing_torches:
-            self.torches[torch] = not self.torches[torch]
-        if (True in self.torches.values()) != (False in self.torches.values()):
+            self.torches[torch] += 1
+            self.torches[torch] %= 3
+        if 1 not in self.torches.values() and 0 not in self.torches.values():
             await self.printTorches()
             await self.rewardPlayers()
         else:
