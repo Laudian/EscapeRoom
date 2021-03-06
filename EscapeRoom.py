@@ -97,7 +97,7 @@ class EscapeRoom(object):
         if mtype == MessageType.LOG:
             self.bot.send_message(Message(self.get_log_channel(target), content))
         elif mtype == MessageType.CHANNEL:
-            self.bot.send_message(Message(self.room_to_discord(target), content))
+            self.bot.send_message(Message(self.room_to_textchannel(target), content))
         elif mtype == MessageType.PLAYER:
             self.bot.send_message(Message(self.player_to_discord(target), content))
         else:
@@ -158,10 +158,15 @@ class EscapeRoom(object):
     def discord_to_room(self, channel: discord.TextChannel) -> "Room":
         return self.__discordChannels.get(channel)
 
-    # translates a Room user into a discord channel
+    # translates a Room user into a discord textchannel
     # returns None if that room is not in the game
-    def room_to_discord(self, room: "Room") -> discord.TextChannel:
+    def room_to_textchannel(self, room: "Room") -> discord.TextChannel:
         return self.__roomsToDiscordText.get(room)
+
+    # translates a Room user into a discord voicechannel
+    # returns None if that room is not in the game
+    def room_to_voicechannel(self, room: "Room") -> discord.VoiceChannel:
+        return self.__roomsToDiscordVoice.get(room)
 
     # returns a list of all current Rooms
     def get_rooms(self) -> List["Room"]:
@@ -187,8 +192,11 @@ class EscapeRoom(object):
             self.__rooms[room.name] = room
 
         channel = await category.create_text_channel(room.name, topic=room.topic)
+        voice = await category.create_voice_channel(room.name, topic=room.topic)
         self.__discordChannels[channel] = room
+        self.__discordChannels[voice] = room
         self.__roomsToDiscordText[room] = channel
+        self.__roomsToDiscordVoice[room] = voice
         room.log("{name} was created".format(name=room.name))
 
     # Creates the discord channels for all the rooms used
@@ -221,14 +229,18 @@ class EscapeRoom(object):
         await self.setup_room(caveentrance, self.categoryRooms)
 
     # Used to make a discord channel visible to players
-    async def show_room(self, room: "Room", player: Player):
-        channel = self.room_to_discord(room)
+    async def show_room(self, room: "Room", player: Player, text=True, voice=False):
         member = self.player_to_discord(player)
-        await channel.set_permissions(member, read_messages=True)
+        if text:
+            textchannel = self.room_to_textchannel(room)
+            await textchannel.set_permissions(member, read_messages=True)
+        if voice:
+            voicechannel = self.room_to_voicechannel(room)
+            await voicechannel.set_permissions(member, read_messages=True)
 
     # Used to make a discord channel invisible to players
-    async def hide_room(self, room: "Room", player: Player):
-        channel = self.room_to_discord(room)
+    async def hide_room(self, room: "Room", player: Player, text=True, voice=True):
+        channel = self.room_to_textchannel(room)
         member = self.player_to_discord(player)
         await channel.set_permissions(member, read_messages=False)
 
