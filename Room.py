@@ -1,6 +1,7 @@
 import logging
 from Message import MessageType
 from typing import Dict, List
+from Player import Rank
 
 # noinspection PyUnreachableCode
 if False:
@@ -65,7 +66,6 @@ class Room(object):
         if player not in self.players:
             self.players.append(player)
             player.set_room(self)
-            await self.game.show_room(self, player)
             self.log("{name} entered the room".format(name=player.name))
             logging.info("Player {name} has entered room {room}".format(name=player.name, room=self.name))
         else:
@@ -115,4 +115,44 @@ class Room(object):
 
     def log(self, message: str):
         self.game.send_message(self, message, mtype=MessageType.LOG)
+
+    @staticmethod
+    def requires_admin(func):
+        async def inner(self, caller: "Player", command: str, content: str = None):
+            if caller.check_rank(Rank.ADMIN):
+                return await func(self, caller, command, content)
+            else:
+                caller.currentRoom.send("Diese Funktion kann nur von Admins benutzt werden.")
+                caller.currentRoom.log("{caller} tried to use {func} but is no Admin.".format(caller=caller.name, func=func.__name__))
+        return inner
+
+    @staticmethod
+    def requires_mod(func):
+        async def inner(self, caller: "Player", command: str, content: str = None):
+            if caller.check_rank(Rank.MOD):
+                return await func(self, caller, command, content)
+            else:
+                caller.currentRoom.send("Diese Funktion kann nur von Moderatoren benutzt werden.")
+                caller.currentRoom.log("{caller} tried to use {func} but is no Mod.".format(caller=caller.name, func=func.__name__))
+        return inner
+
+    @staticmethod
+    def requires_registered(func):
+        async def inner(self, caller: "Player", command: str, content: str = None):
+            if caller.check_rank(Rank.REGISTERED):
+                return await func(self, caller, command, content)
+            else:
+                caller.currentRoom.send("Diese Funktion kann nur von registrierten Spielern benutzt werden.")
+                caller.currentRoom.log("{caller} tried to use {func} but is not registered.".format(caller=caller.name, func=func.__name__))
+        return inner
+
+    @staticmethod
+    def requires_unregistered(func):
+        async def inner(self, caller: "Player", command: str, content: str = None):
+            if caller.check_rank(Rank.UNREGISTERED):
+                return await func(self, caller, command, content)
+            else:
+                caller.currentRoom.send("Diese Funktion kann nur von unregistrierten Spielern benutzt werden.")
+                caller.currentRoom.log("{caller} tried to use {func} but is registered.".format(caller=caller.name, func=func.__name__))
+        return inner
 
