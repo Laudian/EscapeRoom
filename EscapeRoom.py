@@ -222,14 +222,14 @@ class EscapeRoom(object):
         entrance = Entrance(self)
         await self.setup_room(entrance)
 
-        quizroom = Quizroom(self)
-        await self.setup_room(quizroom, self.categoryRooms)
+        # quizroom = Quizroom(self)
+        # await self.setup_room(quizroom, self.categoryRooms)
 
         caveentrance = Caveentrance(self)
         await self.setup_room(caveentrance, self.categoryRooms)
 
     # Used to make a discord channel visible to players
-    async def show_room(self, room: "Room", player: Player, text=True, voice=False):
+    async def show_room(self, room: "Room", player: Player, text=False, voice=False):
         member = self.player_to_discord(player)
         if text:
             textchannel = self.room_to_textchannel(room)
@@ -239,10 +239,13 @@ class EscapeRoom(object):
             await voicechannel.set_permissions(member, read_messages=True)
 
     # Used to make a discord channel invisible to players
-    async def hide_room(self, room: "Room", player: Player, text=True, voice=True):
-        channel = self.room_to_textchannel(room)
+    async def hide_room(self, room: "Room", player: Player):
         member = self.player_to_discord(player)
-        await channel.set_permissions(member, read_messages=False)
+        textchannel = self.room_to_textchannel(room)
+        await textchannel.set_permissions(member, read_messages=False)
+
+        voicechannel = self.room_to_voicechannel(room)
+        await voicechannel.set_permissions(member, read_messages=False)
 
     async def get_rank(self, player: Player) -> Rank:
         user = self.player_to_discord(player)
