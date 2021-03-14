@@ -67,7 +67,7 @@ class TwoDoors(Room):
     # global methods
 
     async def enter(self, player):
-        await super().enter(player)
+        self.lock.acquire()
         if self.unfilledroom:
             # Spieler 2 zu Voicechannel hinzufügen
             await self.game.show_room(self.unfilledroom, player, False, True)
@@ -91,8 +91,10 @@ class TwoDoors(Room):
         textchannel = self.game.room_to_textchannel(private)
         await textchannel.set_permissions(self.game.roleRegistered, send_messages=False)
         await private.enter(player)
-        await self.game.show_room(private, player, True, False)
-        await player.currentRoom.send(message)
+        await self.game.show_room(private, player, text=True, voice=False)
+        player.currentRoom.send(message)
+        self.lock.release()
+        return
 
     async def moveKey(self, direction):
         pass
