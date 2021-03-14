@@ -2,6 +2,7 @@ import logging
 from Message import MessageType
 from typing import Dict, List
 from Player import Rank
+from threading import Lock
 
 # noinspection PyUnreachableCode
 if False:
@@ -37,6 +38,9 @@ class Room(object):
 
         # Register commands
         self.register_command(None, self.handle_none, "")
+
+        # Lock for entering / leaving the room
+        self.lock = Lock()
         return
 
     # Set Permissions
@@ -63,6 +67,7 @@ class Room(object):
     # This method is called when a player enters a room and must be available
     # You should probably override this method
     async def enter(self, player: "Player"):
+        self.lock.acquire()
         if player not in self.players:
             self.players.append(player)
             player.set_room(self)
@@ -70,11 +75,13 @@ class Room(object):
             logging.info("Player {name} has entered room {room}".format(name=player.name, room=self.name))
         else:
             logging.error("Player {player} is already a member of room {room}".format(player=player.name, room=self.name))
+        self.lock.release()
         return
 
     # This method is called when a player leaves a room and must always be available
     # You may want to override this method
     async def leave(self, player: "Player"):
+        self.lock.acquire()
         if player in self.players:
             self.players.remove(player)
             player.set_room(None)
@@ -82,6 +89,7 @@ class Room(object):
             self.log("{name} left the room".format(name=player.name))
         else:
             logging.error("Player {player} is not a member of room {room}".format(player=player.name, room=self.name))
+        self.lock.release()
         return
 
     # This Method is called if the command used is unavailable in this room. It will inform the player
