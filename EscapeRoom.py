@@ -1,7 +1,7 @@
 import logging
 import Settings_local as Settings
 from Discord import DiscordBot
-from rooms import Caveentrance, Quizroom, Entrance, TwoDoors
+from rooms import Caveentrance, Entrance, TwoDoors, Keyroom
 from Player import Player, Rank
 from Message import *
 from typing import Dict, Union, List
@@ -184,7 +184,11 @@ class EscapeRoom(object):
 
     async def setup_room(self, room: 'Room', category: discord.CategoryChannel = None, parent: "Room" = None):
         if category is None:
-            category = self.bot.server
+            category = await self.bot.server.create_category(room.name, overwrites=
+            {
+                self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
+            })
+            room.category = category
 
         if parent is None:
             channel_log = await self.categoryLog.create_text_channel(room.name + "_log")
@@ -201,10 +205,6 @@ class EscapeRoom(object):
 
     # Creates the discord channels for all the rooms used
     async def setup_discord(self):
-        self.categoryRooms: discord.CategoryChannel = await self.bot.server.create_category("Rooms", overwrites=
-        {
-            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
-        })
         self.categoryLog: discord.CategoryChannel = await self.bot.server.create_category("Log", overwrites=
         {
             self.bot.server.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -222,15 +222,14 @@ class EscapeRoom(object):
         entrance = Entrance(self)
         await self.setup_room(entrance)
 
-
-        # quizroom = Quizroom(self)
-        # await self.setup_room(quizroom, self.categoryRooms)
-
         caveentrance = Caveentrance(self)
-        await self.setup_room(caveentrance, self.categoryRooms)
+        await self.setup_room(caveentrance)
+
+        dungeon = Keyroom.Keyroom(self)
+        await self.setup_room(dungeon)
 
         twodoors = TwoDoors(self)
-        await self.setup_room(twodoors, self.categoryRooms)
+        await self.setup_room(twodoors)
 
     # Used to make a discord channel visible to players
     async def show_room(self, room: "Room", player: Player, text=False, voice=False):

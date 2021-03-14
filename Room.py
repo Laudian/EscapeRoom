@@ -41,6 +41,9 @@ class Room(object):
 
         # Lock for entering / leaving the room
         self.lock = Lock()
+        
+        # Category will be created by setup Method
+        self.category = None
         return
 
     # Set Permissions

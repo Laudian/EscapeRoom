@@ -1,5 +1,5 @@
 from Room import Room
-from PrivateRoom import PrivateRoom
+from .PrivateRoom import PrivateRoom
 import datetime
 import discord
 import time
@@ -9,11 +9,11 @@ from typing import Dict
 entrymessage = "Hier kommt der Entrytext hin."
 result = 12345
 
-with open("/resources/keyroom_colored.png", "rb") as imagefile:
+with open("resources/keyroom_colored.png", "rb") as imagefile:
     keyimage = discord.File(imagefile)
 
 
-class KeyRoom(Room):
+class Keyroom(Room):
     def __init__(self, game):
         self.game = game
         super().__init__("Kerker", game)
