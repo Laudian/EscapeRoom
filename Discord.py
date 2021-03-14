@@ -4,6 +4,7 @@ from queue import Queue, Empty
 from Message import *
 import asyncio
 import Settings_local as Settings
+from io import IOBase
 
 # noinspection PyUnreachableCode
 if False:
@@ -61,7 +62,10 @@ class DiscordBot(discord.Client):
             while self.enableMessaging:
                 try:
                     message = self.messageQueue.get(block=False)
-                    await message.target.send(message.content)
+                    if isinstance(message.content, discord.file.File):
+                        await message.target.send(file=message.content)
+                    else:
+                        await message.target.send(message.content)
                 except Empty:
                     break
             await asyncio.sleep(1)  # task runs every second

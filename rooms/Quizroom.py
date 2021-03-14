@@ -84,6 +84,7 @@ class Quizroom(Room):
                 await self.completed(player)
 
     # give an answer
+    @Room.requires_admin
     async def giveAnswer(self, player, command, content):
         progress = self.progress[player]
         given_answer = (str(content).lower()).replace(" ", "")

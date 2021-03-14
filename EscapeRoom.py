@@ -222,6 +222,7 @@ class EscapeRoom(object):
         entrance = Entrance(self)
         await self.setup_room(entrance)
 
+
         # quizroom = Quizroom(self)
         # await self.setup_room(quizroom, self.categoryRooms)
 
