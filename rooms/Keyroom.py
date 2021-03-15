@@ -33,7 +33,7 @@ class Keyroom(Room):
     async def pin(self, player, command, content):
         lasttime = self.__lasttry.get(player, None)
         current = datetime.datetime.now()
-        if lasttime is not None and (current - lasttime) < datetime.timedelta(minutes=1):
+        if lasttime is not None and (current - lasttime) > datetime.timedelta(minutes=1):
             player.currentRoom.send("Du musst noch warten, bevor du eine weitere Eingabe tätigen kannst.")
             return
 
@@ -49,3 +49,6 @@ class Keyroom(Room):
             await asyncio.sleep(5)
             await self.leave(player)
             await nextroom.enter(player)
+        else:
+            player.currentRoom.send("Dies ist leider nicht das richtige Ergebnis."
+                                    "Versuche es in einer Minute noch einmal.")
