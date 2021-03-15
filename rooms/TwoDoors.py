@@ -146,6 +146,18 @@ class TwoDoors(Room):
             for spot in spots:
                 self.infoboards[duo_nr][spot] = color
 
+    async def _restartAfterLockMistakes(self, duo_nr):
+        # reset locks
+        self.unlock_tries[duo_nr] = 2
+        self.locksopened[duo_nr] = 0
+        for (x, y) in self.locks.keys():
+            self.gameboards[duo_nr][(x, y)] = ":lock:"
+        # reset key
+        self.behind_key[duo_nr] = ":black_circle:"
+        self.key_positions[duo_nr] = (6, 2)
+        self.gameboards[duo_nr][(6, 2)] = ":key:"
+
+
     async def _updateBoards_(self, duo_nr, gameplayer):
         message_game = await self._createMessage_(duo_nr, "game")
         message_info = await self._createMessage_(duo_nr, "info")
@@ -250,38 +262,22 @@ class TwoDoors(Room):
                     self.gametext[duo_nr] = "Da passt irgendwas nicht."
                     # restart
                     if self.unlock_tries[duo_nr] == 0:
-                        # reset locks
-                        self.unlock_tries[duo_nr] = 2
-                        self.locksopened[duo_nr] = 0
-                        for (x, y) in self.locks.keys():
-                            self.gameboards[duo_nr][(x, y)] = ":lock:"
+                        await self._restartAfterLockMistakes(duo_nr)
                         self.infotext[duo_nr] = "Alle Schlösser zurückgesetzt. Das war ein Fehler zu viel"
-                        # reset key
-                        self.behind_key[duo_nr] = ":black_circle:"
-                        self.key_positions[duo_nr] = (6, 2)
-                        self.gameboards[duo_nr][(6, 2)] = ":key:"
                     # 1 try left
                     else:
-                        self.infotext[duo_nr] = "Falsche Schlossreihenfolge. Versuche: " + str(self.unlock_tries[duo_nr])
+                        self.infotext[duo_nr] = "Falsche Schlossreihenfolge. Versuche: 1"
             # key doesnt match lock
             else:
                 self.unlock_tries[duo_nr] -= 1
                 self.gametext[duo_nr] = "Da passt irgendwas nicht."
                 # restart
                 if self.unlock_tries[duo_nr] == 0:
-                    # reset locks
-                    self.unlock_tries[duo_nr] = 2
-                    self.locksopened[duo_nr] = 0
-                    for (x, y) in self.locks.keys():
-                        self.gameboards[duo_nr][(x, y)] = ":lock:"
-                    self.infotext[duo_nr] = "Tür zurückgesetzt. Das war ein Fehler zu viel"
-                    # reset key
-                    self.behind_key[duo_nr] = ":black_circle:"
-                    self.key_positions[duo_nr] = (6, 2)
-                    self.gameboards[duo_nr][(6, 2)] = ":key:"
+                    await self._restartAfterLockMistakes(duo_nr)
+                    self.infotext[duo_nr] = "Alle Schlösser zurückgesetzt. Das war ein Fehler zu viel"
                 # 1 try left
                 else:
-                    self.infotext[duo_nr] = "Falsche Schlüsselfarbe. Versuche: " + str(self.unlock_tries[duo_nr])
+                    self.infotext[duo_nr] = "Falsche Schlüsselfarbe. Versuche: 1"
         # key on field with open lock
         elif self.behind_key == ":open_lock:":
             self.gametext[duo_nr] = "Dieses Schloss ist schon offen"
