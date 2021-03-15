@@ -9,8 +9,6 @@ from typing import Dict
 entrymessage = "Hier kommt der Entrytext hin."
 result = 12345
 
-keyimage = open("resources/keyroom_colored.png", "rb")
-
 
 class Keyroom(Room):
     def __init__(self, game):
@@ -29,7 +27,8 @@ class Keyroom(Room):
         await private.enter(player)
         await self.game.show_room(private, player, text=True)
         private.send(entrymessage)
-        private.send(discord.File(keyimage))   # funktioniert nur beim ersten Spieler der dem Raum betritt
+        with open("resources/keyroom_colored.png", "rb") as keyimage:
+            private.send(discord.File(keyimage))   # funktioniert nur beim ersten Spieler der dem Raum betritt
 
     async def pin(self, player, command, content):
         lasttime = self.__lasttry.get(player, None)
