@@ -10,7 +10,7 @@ entrymessage = "Hier kommt der Entrytext hin."
 result = 12345
 
 with open("resources/keyroom_colored.png", "rb") as imagefile:
-    keyimage = discord.File(imagefile)
+    pass
 
 
 class Keyroom(Room):
@@ -30,7 +30,7 @@ class Keyroom(Room):
         await private.enter(player)
         await self.game.show_room(private, player, text=True)
         private.send(entrymessage)
-        private.send(keyimage)   # funktioniert nur beim ertsen Spieler der dem Raum betritt
+        private.send(discord.File(imagefile))   # funktioniert nur beim ersten Spieler der dem Raum betritt
 
     async def pin(self, player, command, content):
         lasttime = self.__lasttry.get(player, None)
