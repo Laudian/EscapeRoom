@@ -13,21 +13,19 @@ class TwoDoors(Room):
         self.unfilledroom = False
         self.duo_counter = 0
         self.duos = {}
-        self.locksopened = [0, 0, 0, 0]
+        self.voice_channels = {}
 
         # flags
         self.allflags = ["🇨🇺", "🇲🇿", "🇸🇸", "🇯🇴", "🇬🇾", "🇵🇸", "🇸🇹"]
         self.flagstarts = [0, 0, 0, 0]
-        self.currentflags = [{"🇨🇺": "up", "🇲🇿": "left", "🇸🇸": "down", "🇯🇴": "right"},
-                             {"🇨🇺": "up", "🇲🇿": "left", "🇸🇸": "down", "🇯🇴": "right"},
-                             {"🇨🇺": "up", "🇲🇿": "left", "🇸🇸": "down", "🇯🇴": "right"},
-                             {"🇨🇺": "up", "🇲🇿": "left", "🇸🇸": "down", "🇯🇴": "right"}]
+        self.currentflags = [{}, {}, {}, {}]
+
         # left and right switched because of mirrored gameboard
         self.directions = {"up": (0, -1), "left": (1, 0), "down": (0, 1), "right": (-1, 0)}
 
         # colors
-        self.colors = [":red_circle:", ":blue_circle:", ":green_circle:", ":yellow_circle:",
-                       ":orange_circle:", ":purple_circle:", ":brown_circle:"]
+        self.colors = ["🔴", "🟣", "🔵", "🟤",  # rot, lila, blau, braun
+                       "🟢", "🟠", "🟡"]       # grün, orange, gelb
 
         self.colorspots = {0 : [(2, 1), (3, 2), (6, 3), (7, 6), (1, 7), (5, 8)],
                            1 : [(4, 2), (8, 2), (5, 5), (1, 8), (3, 8), (7, 8)],
@@ -37,18 +35,19 @@ class TwoDoors(Room):
                            5 : [(1, 1), (5, 1), (7, 3), (3, 5), (5, 6), (8, 8)],
                            6 : [(3, 1), (7, 1), (6, 4), (1, 5), (3, 6), (6, 8)]}
 
-        self.colororder = (":red_circle:", ":blue_circle:", ":green_circle:", ":yellow_circle:",  #TODO
-                           ":orange_circle:", ":purple_circle:", ":brown_circle:")
+        self.colororder = ("🔴", "🟣", "🔵", "🟤",  #TODO
+                           "🟢", "🟠", "🟡")
 
-        self.colormappings = {0: [":red_circle:", ":red_circle:", ":red_circle:", ":red_circle:"],
-                              1: [":blue_circle:", ":blue_circle:", ":blue_circle:", ":blue_circle:"],
-                              2: [":green_circle:", ":green_circle:", ":green_circle:", ":green_circle:"],
-                              3: [":yellow_circle:", ":yellow_circle:", ":yellow_circle:", ":yellow_circle:"],
-                              4: [":orange_circle:", ":orange_circle:", ":orange_circle:", ":orange_circle:"],
-                              5: [":purple_circle:", ":purple_circle:", ":purple_circle:", ":purple_circle:"],
-                              6: [":brown_circle:", ":brown_circle:", ":brown_circle:", ":brown_circle:"]}
+        self.colormappings = {0: ["", "", "", ""],
+                              1: ["", "", "", ""],
+                              2: ["", "", "", ""],
+                              3: ["", "", "", ""],
+                              4: ["", "", "", ""],
+                              5: ["", "", "", ""],
+                              6: ["", "", "", ""]}
         # locks mirrored
         self.locks = {(7, 1): 0, (8, 8): 1, (8, 4): 2, (1, 3): 3, (5, 7): 4, (4, 6): 5, (3, 4): 6}
+        self.locksopened = [0, 0, 0, 0]
 
         # key
         self.key_positions = [(6, 2), (6, 2), (6, 2), (6, 2)]
@@ -81,7 +80,7 @@ class TwoDoors(Room):
             self.gameboards[i][self.key_positions[i]] = ":key:"
 
         # unlock tries
-        self.unlock_tries = [0, 0, 0, 0]
+        self.unlock_tries = [2, 2, 2, 2]
 
         # textpanels
         self.infotext = ["Hmm...", "Hmm...", "Hmm...", "Hmm..."]
@@ -146,17 +145,15 @@ class TwoDoors(Room):
             for spot in spots:
                 self.infoboards[duo_nr][spot] = color
 
-    async def _restartAfterLockMistakes(self, duo_nr):
+    async def _restartAfterLockMistakes(self, duo_nr, lock_position):
         # reset locks
         self.unlock_tries[duo_nr] = 2
         self.locksopened[duo_nr] = 0
         for (x, y) in self.locks.keys():
             self.gameboards[duo_nr][(x, y)] = ":lock:"
-        # reset key
-        self.behind_key[duo_nr] = ":black_circle:"
-        self.key_positions[duo_nr] = (6, 2)
-        self.gameboards[duo_nr][(6, 2)] = ":key:"
-
+        # change colors
+        await self._changeColors_(duo_nr)
+        self.gameboards[duo_nr][lock_position] = ":closed_lock_with_key:"
 
     async def _updateBoards_(self, duo_nr, gameplayer):
         message_game = await self._createMessage_(duo_nr, "game")
@@ -170,8 +167,6 @@ class TwoDoors(Room):
     async def enter(self, player):
         self.lock.acquire()
         if self.unfilledroom:
-            # Spieler 2 zu Voicechannel hinzufügen
-            await self.game.show_room(self.unfilledroom, player, text=False, voice=True)
             # privaten Raum kofigurieren Spieler 2
             private = PrivateRoom(self, " 2")
             await self._placeNewFlags_(self.duo_counter)
@@ -183,12 +178,13 @@ class TwoDoors(Room):
             # Voicechannel für Spieler 1 und 2 erstellen
             self.unfilledroom = PrivateRoom(self, " Voice")
             await self.unfilledroom.setup()
-            # Spieler 1 zu Voicechannel hinzufügen
-            await self.game.show_room(self.unfilledroom, player, text=False, voice=True)
             # privaten Raum kofigurieren Spieler 1
             private = PrivateRoom(self, " 1")
             message = await self._createMessage_(self.duo_counter, "game")
             self.duos[player] = self.duo_counter
+        # Spieler zu Voicechannel hinzufügen
+        await self.game.show_room(self.unfilledroom, player, text=False, voice=True)
+        self.voice_channels[player] = self.unfilledroom
         # privaten Raum erstellen
         await private.setup()
         textchannel = self.game.room_to_textchannel(private)
@@ -238,31 +234,32 @@ class TwoDoors(Room):
         await self._updateBoards_(duo_nr, player)
 
     async def openLock(self, player, command, content):
+        done = False
         duo_nr = self.duos[player]
-        key_color = content
+        key_color = str(content)
         lock_position = self.key_positions[duo_nr]
         lock_number = self.locks[lock_position]
         lock_color = self.colormappings[lock_number][duo_nr]
         # key on field with closed lock
-        if self.behind_key == ":lock:":
+        if self.behind_key[duo_nr] == ":lock:":
             # key matches lock
             if key_color == lock_color:
                 # correct lock order
-                if lock_number == self.locksopened[duo_nr]:
+                if lock_color == self.colororder[self.locksopened[duo_nr]]:
                     self.locksopened[duo_nr] += 1
                     self.gametext[duo_nr] = "Passt perfekt!"
                     self.infotext[duo_nr] = "Schloss " + str(self.locksopened[duo_nr]) + "/7 geöffnet. Versuche: 2"
                     self.behind_key[duo_nr] = ":unlock:"
                     # last lock opened
                     if self.locksopened[duo_nr] == 7:
-                        await self.rewardPlayers(player)
+                        done = True
                 # wrong lock order
                 else:
                     self.unlock_tries[duo_nr] -= 1
                     self.gametext[duo_nr] = "Da passt irgendwas nicht."
                     # restart
                     if self.unlock_tries[duo_nr] == 0:
-                        await self._restartAfterLockMistakes(duo_nr)
+                        await self._restartAfterLockMistakes(duo_nr, lock_position)
                         self.infotext[duo_nr] = "Alle Schlösser zurückgesetzt. Das war ein Fehler zu viel"
                     # 1 try left
                     else:
@@ -273,13 +270,13 @@ class TwoDoors(Room):
                 self.gametext[duo_nr] = "Da passt irgendwas nicht."
                 # restart
                 if self.unlock_tries[duo_nr] == 0:
-                    await self._restartAfterLockMistakes(duo_nr)
+                    await self._restartAfterLockMistakes(duo_nr, lock_position)
                     self.infotext[duo_nr] = "Alle Schlösser zurückgesetzt. Das war ein Fehler zu viel"
                 # 1 try left
                 else:
                     self.infotext[duo_nr] = "Falsche Schlüsselfarbe. Versuche: 1"
         # key on field with open lock
-        elif self.behind_key == ":open_lock:":
+        elif self.behind_key[duo_nr] == ":open_lock:":
             self.gametext[duo_nr] = "Dieses Schloss ist schon offen"
             self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
         # key on field without lock
@@ -287,10 +284,13 @@ class TwoDoors(Room):
             self.gametext[duo_nr] = "Du weißt schon, dass hier kein Schloss ist?"
             self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
         await self._updateBoards_(duo_nr, player)
+        if done:
+            await self.rewardPlayers(player, duo_nr)
 
-    async def rewardPlayers(self, player):
-        self.send("Nachricht am Ende des Raumes")  #TODO
-        for player in list(self.get_players()):
+    async def rewardPlayers(self, gameplayer, duo_nr):
+        infoplayer = self.duos[duo_nr]
+        for player in [gameplayer, infoplayer]:
             await self.leave(player)
+            await self.game.hide_room(self.voice_channels[player], player)
             nextroom = self.game.get_room("Eingangshalle")
             await nextroom.enter(player)

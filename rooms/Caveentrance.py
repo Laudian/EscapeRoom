@@ -6,8 +6,8 @@ class Caveentrance(Room):
         super().__init__("Höhleneingang", game)
         self.game = game
         # variables
-        self.torches = {0: 2, 1: 0, 2: 0, 3: 2,
-                        4: 0, 5: 0, 6: 2, 7: 0}
+        self.torches = {0: 1, 1: 2, 2: 0, 3: 2,
+                        4: 0, 5: 0, 6: 0, 7: 2}
         self.buttons = {0: [0, 1, 2, 3, 4], 1: [0, 1, 2, 3, 5], 2: [0, 1, 2, 3, 6], 3: [0, 1, 2, 3, 7],
                         4: [4, 5, 6, 7, 0], 5: [4, 5, 6, 7, 1], 6: [4, 5, 6, 7, 2], 7: [4, 5, 6, 7, 3]}
         self.empty = True
@@ -19,11 +19,11 @@ class Caveentrance(Room):
         message = ""
         for x in range(8):
             if self.torches[x] == 0:
-                message += ":menorah:"
+                message += "<:spinne:821139677792698409>"
             elif self.torches[x] == 1:
-                message += ":gemini:"
+                message += "<:adler:821135835906572298>"
             else:
-                message += ":libra:"
+                message += "<:flamme:821135894593404969>"
             if x % 4 == 3:
                 message += "\n"
         self.send(message)
@@ -44,7 +44,7 @@ class Caveentrance(Room):
             for torch in changing_torches:
                 self.torches[torch] += 1
                 self.torches[torch] %= 3
-            if 1 not in self.torches.values() and 0 not in self.torches.values():
+            if 1 not in self.torches.values() and 2 not in self.torches.values():
                 await self.printTorches()
                 await self.rewardPlayers()
             else:
@@ -52,12 +52,12 @@ class Caveentrance(Room):
 
     @Room.requires_mod
     async def pushAnyButton(self, player, command, content):
-        button_number = int(content) + 1
+        button_number = int(content) - 1
         changing_torches = self.buttons[button_number]
         for torch in changing_torches:
             self.torches[torch] += 1
             self.torches[torch] %= 3
-        if 1 not in self.torches.values() and 0 not in self.torches.values():
+        if 1 not in self.torches.values() and 2 not in self.torches.values():
             await self.printTorches()
             await self.rewardPlayers()
         else:
@@ -71,5 +71,5 @@ class Caveentrance(Room):
         self.send("Nachricht am Ende des Raumes")  #TODO
         for player in list(self.get_players()):
             await self.leave(player)
-            nextroom = self.game.get_room("Zwei Türen")
+            nextroom = self.game.get_room("Kerker")
             await nextroom.enter(player)

@@ -2,7 +2,7 @@ from Room import Room
 from .PrivateRoom import PrivateRoom
 import datetime
 import discord
-import time
+import asyncio
 import logging
 from typing import Dict
 
@@ -19,7 +19,7 @@ class Keyroom(Room):
         super().__init__("Kerker", game)
         self.__rooms = {}
         self.__lasttry: Dict[str, datetime.datetime] = {}
-        self.nextroom = self.game.get_room("Eingangshalle")
+        self.nextroom = self.game.get_room("Zwei Türen")
 
         self.register_command("pin", self.pin, "Benutze '!pin 12345' um eine Lösung einzugeben.")
 
@@ -30,9 +30,9 @@ class Keyroom(Room):
         await private.enter(player)
         await self.game.show_room(private, player, text=True)
         private.send(entrymessage)
-        private.send(keyimage)
+        private.send(keyimage)   # funktioniert nur beim ertsen Spieler der dem Raum betritt
 
-    def pin(self, player, content):
+    async def pin(self, player, command, content):
         lasttime = self.__lasttry.get(player, None)
         current = datetime.datetime.now()
         if lasttime is not None and (current - lasttime) < datetime.timedelta(minutes=1):
@@ -47,6 +47,7 @@ class Keyroom(Room):
 
         if pin == result:
             player.currentRoom.send("Die Kerkertür öffnet sich.")
-            time.sleep(secs=5)
-            self.leave(player)
-            self.nextroom.enter(player)
+            nextroom = self.game.get_room("Zwei Türen")
+            await asyncio.sleep(5)
+            await self.leave(player)
+            await nextroom.enter(player)
