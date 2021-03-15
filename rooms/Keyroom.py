@@ -9,8 +9,7 @@ from typing import Dict
 entrymessage = "Hier kommt der Entrytext hin."
 result = 12345
 
-with open("resources/keyroom_colored.png", "rb") as imagefile:
-    keyimage = discord.File(imagefile)
+keyimage = open("resources/keyroom_colored.png", "rb")
 
 
 class Keyroom(Room):
