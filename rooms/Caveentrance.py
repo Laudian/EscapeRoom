@@ -1,6 +1,7 @@
 from Room import Room
 import logging
 
+
 class Caveentrance(Room):
     def __init__(self, game):
         super().__init__("Höhleneingang", game)
@@ -68,7 +69,6 @@ class Caveentrance(Room):
         await self.rewardPlayers()
 
     async def rewardPlayers(self):
-        self.send("Nachricht am Ende des Raumes")  #TODO
         for player in list(self.get_players()):
             await self.leave(player)
             nextroom = self.game.get_room("Kerker")

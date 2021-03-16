@@ -60,7 +60,6 @@ class DiscordBot(discord.Client):
             pass
             # await self.controller.handle_reaction(user, reaction.message.channel ,{"icon": reaction.emoji})
 
-
     async def dispatch_messages(self):
         await self.wait_until_ready()
         while not self.is_closed():
