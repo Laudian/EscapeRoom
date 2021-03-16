@@ -221,7 +221,11 @@ class EscapeRoom(object):
             await member.add_roles(self.roleUnregistered)
 
         entrance = Entrance(self)
-        await self.setup_room(entrance)
+        category = await self.bot.server.create_category(entrance.name, overwrites=
+        {
+            self.bot.server.default_role: discord.PermissionOverwrite(read_messages=True),
+        })
+        await self.setup_room(entrance, category)
 
         caveentrance = Caveentrance(self)
         await self.setup_room(caveentrance)

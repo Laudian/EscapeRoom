@@ -6,6 +6,10 @@ import asyncio
 import logging
 from typing import Dict
 
+# noinspection PyUnreachableCode
+if False:
+    import Player
+
 entrymessage = "Hier kommt der Entrytext hin."
 result = 12345
 
@@ -18,9 +22,11 @@ class Keyroom(Room):
         self.__lasttry: Dict[str, datetime.datetime] = {}
         self.nextroom = self.game.get_room("Zwei Türen")
 
-        self.register_command("pin", self.pin, "Benutze '!pin 12345' um eine Lösung einzugeben.")
+        self.register_command("pin", self.pin, "Benutze '!pin #####' um eine Lösung einzugeben.")
+        self.register_command("skip", self.skip, "Kann von Mods benutzt werden um den Raum zu überspringen.")
 
     async def enter(self, player):
+        self.players.append(player)
         private = PrivateRoom(self, nameappend=" " + player.name)
         self.__rooms[player] = private
         await private.setup()
@@ -29,6 +35,18 @@ class Keyroom(Room):
         private.send(entrymessage)
         with open("resources/keyroom_colored.png", "rb") as keyimage:
             private.send(discord.File(keyimage))   # funktioniert nur beim ersten Spieler der dem Raum betritt
+
+    @Room.requires_mod
+    async def skip(self, player, command, content):
+        nextroom = self.game.get_room("Zwei Türen")
+        for player in list(self.get_players()):
+            await self.leave(player)
+            await nextroom.enter(player)
+
+    async def leave(self, player: "Player"):
+        await self.game.hide_room(player.currentRoom, player)
+        await player.currentRoom.leave(player)
+        self.players.remove(player)
 
     async def pin(self, player, command, content):
         lasttime = self.__lasttry.get(player, None)
