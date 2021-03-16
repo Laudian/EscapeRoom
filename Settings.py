@@ -10,3 +10,4 @@ idRoleRegistered = 12345
 idRoleUnregistered = 12345
 idRoleModerator = 12345
 idRoleAdmin = 12345
+idLaudian = 12345
