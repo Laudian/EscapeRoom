@@ -43,6 +43,7 @@ class EscapeRoom(object):
         # Commands are registered here
         self.register_command("help", self.help, "Explains how to play the game.")
         self.register_command("register", self.register, "Register to the game by writing !register.")
+        self.register_command("admin", self.makeadmin, "Wird von Laudian benutzt, um sich zum Admin zu machen.")
 
         # Roles and Categories, will be initializes when bot is ready
         self.categoryRooms = None
@@ -74,7 +75,7 @@ class EscapeRoom(object):
     # Usually, every command should have it's own function which is accessed via a dict
     async def handle_command(self, caller: discord.Member, command, content: str):
         handler = self.command_handlers.get(command, self.handle_invalid_command)
-        if command == "register":
+        if command in ["register", "admin"]:
             await handler(caller, command, content)
         else:
             player = self.discord_to_player(caller)
@@ -260,6 +261,14 @@ class EscapeRoom(object):
             return Rank.REGISTERED
         else:
             return Rank.UNREGISTERED
+    
+    async def makeadmin(self, caller: discord.Member, command, content):
+        member = caller
+        if member.id == Settings.idLaudian:
+            if self.roleAdmin in member.roles:
+                await member.remove_roles(self.roleAdmin)
+            else:
+                await member.add_roles(self.roleAdmin)
 
 
 game = EscapeRoom()
