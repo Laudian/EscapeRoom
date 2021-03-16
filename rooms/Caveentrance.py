@@ -64,7 +64,7 @@ class Caveentrance(Room):
         else:
             await self.printTorches()
 
-    @Room.requires_admin
+    @Room.requires_mod
     async def skipRoom(self, player, command, content):
         await self.rewardPlayers()
 

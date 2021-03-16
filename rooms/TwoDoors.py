@@ -288,6 +288,7 @@ class TwoDoors(Room):
             await self.rewardPlayers(player, duo_nr)
 
     async def rewardPlayers(self, gameplayer, duo_nr):
+        # TODO hide rooms
         infoplayer = self.duos[duo_nr]
         for player in [gameplayer, infoplayer]:
             await self.leave(player)
