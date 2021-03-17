@@ -14,7 +14,7 @@ class Caveentrance(Room):
         self.empty = True
         # register commands
         self.register_command("button", self.pushButton, "Eigenen Knopf drücken - Höhleneingang")
-        self.register_command("skiproom", self.skipRoom, "Raum überspringen")
+        self.register_command("skip", self.skip, "Raum überspringen")
 
     async def printTorches(self):
         message = ""
@@ -65,7 +65,7 @@ class Caveentrance(Room):
             await self.printTorches()
 
     @Room.requires_mod
-    async def skipRoom(self, player, command, content):
+    async def skip(self, player, command, content):
         await self.rewardPlayers()
 
     async def rewardPlayers(self):

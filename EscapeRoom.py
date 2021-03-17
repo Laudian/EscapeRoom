@@ -1,7 +1,7 @@
 import logging
 import Settings_local as Settings
 from Discord import DiscordBot
-from rooms import Caveentrance, Entrance, TwoDoors, Keyroom
+from rooms import Caveentrance, Entrance, TwoDoors, Keyroom, FourWalls
 from Player import Player, Rank
 from Message import *
 from typing import Dict, Union, List
@@ -235,6 +235,9 @@ class EscapeRoom(object):
 
         twodoors = TwoDoors(self)
         await self.setup_room(twodoors)
+
+        fourwalls = FourWalls(self)
+        await self.setup_room(fourwalls)
 
     # Used to make a discord channel visible to players
     async def show_room(self, room: "Room", player: Player, text=False, voice=False):

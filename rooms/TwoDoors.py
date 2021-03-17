@@ -89,6 +89,7 @@ class TwoDoors(Room):
         # register commands
         self.register_command("move", self.moveKey, "bewegt etwas jenachdem was hinter !move steht")
         self.register_command("unlock", self.openLock, "öffnet das Schloss wenn die Farbe passt")
+        self.register_command("skip", self.skip, "Raum überspringen")
 
     # privat methods
 
@@ -168,7 +169,7 @@ class TwoDoors(Room):
         self.lock.acquire()
         if self.unfilledroom:
             # privaten Raum kofigurieren Spieler 2
-            private = PrivateRoom(self, " 2")
+            private = PrivateRoom(self, " " + player.name)
             await self._placeNewFlags_(self.duo_counter)
             await self._changeColors_(self.duo_counter)
             message = await self._createMessage_(self.duo_counter, "info")
@@ -179,7 +180,7 @@ class TwoDoors(Room):
             self.unfilledroom = PrivateRoom(self, " Voice")
             await self.unfilledroom.setup()
             # privaten Raum kofigurieren Spieler 1
-            private = PrivateRoom(self, " 1")
+            private = PrivateRoom(self, " " + player.name)
             message = await self._createMessage_(self.duo_counter, "game")
             self.duos[player] = self.duo_counter
         # Spieler zu Voicechannel hinzufügen
@@ -287,11 +288,21 @@ class TwoDoors(Room):
         if done:
             await self.rewardPlayers(player, duo_nr)
 
+    @Room.requires_mod
+    async def skip(self, player, command, content):
+        for gameplayer, duo_nr in self.duos.items():
+            if type(duo_nr) == int:
+                await self.rewardPlayers(gameplayer, duo_nr)
+
+    async def leave(self, player):
+        await self.game.hide_room(player.currentRoom, player)
+        await player.currentRoom.leave(player)
+        self.players.remove(player)
+
     async def rewardPlayers(self, gameplayer, duo_nr):
-        # TODO hide rooms
         infoplayer = self.duos[duo_nr]
         for player in [gameplayer, infoplayer]:
             await self.leave(player)
             await self.game.hide_room(self.voice_channels[player], player)
-            nextroom = self.game.get_room("Eingangshalle")
+            nextroom = self.game.get_room("Vier Wände")
             await nextroom.enter(player)
