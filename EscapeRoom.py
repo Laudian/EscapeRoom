@@ -44,6 +44,8 @@ class EscapeRoom(object):
         self.register_command("help", self.help, "Explains how to play the game.")
         self.register_command("register", self.register, "Register to the game by writing !register.")
         self.register_command("admin", self.makeadmin, "Wird von Laudian benutzt, um sich zum Admin zu machen.")
+        self.register_command("start", self.start_game, "This method starts the game.")
+        self.started = False
 
         # Roles and Categories, will be initializes when bot is ready
         self.categoryRooms = None
@@ -136,7 +138,7 @@ class EscapeRoom(object):
             else:
                 user = mention
         if user in self.get_discord_users():
-            self.discord_to_player(user).send("Du bist bereits angemeldet")
+            self.get_room("Eingangshalle").send("{name} ist bereits angemeldet.}".format(name=user.display_name))
             self.discord_to_player(user).currentRoom\
                 .log("User tried to register but was already registered")
             return
@@ -271,7 +273,7 @@ class EscapeRoom(object):
             return Rank.REGISTERED
         else:
             return Rank.UNREGISTERED
-    
+
     async def makeadmin(self, caller: discord.Member, command, content):
         member = caller
         if member.id == Settings.idLaudian:
@@ -279,6 +281,21 @@ class EscapeRoom(object):
                 await member.remove_roles(self.roleAdmin)
             else:
                 await member.add_roles(self.roleAdmin)
+
+    async def start_game(self, caller: discord.Member, command: str, content: str):
+        if self.started:
+            return
+        entrance = self.get_room("Eingangshalle")
+        if not (self.roleAdmin in caller.roles or self.roleModerator in caller.roles):
+            entrance.log("{caller} hat versucht das Spiel zu starten ohne die Berechtigung dafür zu haben.")
+        entrance.log("Players: " + str(self.get_players()))
+        entrance.log("start called by " + caller.name)
+        # move all players from Entrance to Their starting room
+        for player in list(self.get_players()):
+            await entrance.leave(player)
+            nextroom = self.get_room("Höhleneingang")
+            await nextroom.enter(player)
+        self.started = True
 
 
 game = EscapeRoom()
