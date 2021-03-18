@@ -33,6 +33,22 @@ class Caveentrance(Room):
         await super().enter(player)
         if self.empty:
             self.empty = False
+            self.send("* Einige Wochen später * \n"
+                      "Ihr seid in der Höhle des Globglogabgalab angekommen. Eine Tagelange Reise steht hinter " 
+                      "euch und Kilometerlange Gänge in dieser elenden Höhle sind bereits zurückgelegt. Die "
+                      "Reise zehrt an der Motivation der Abenteurer, was nun folgt ist auch nicht gerade "
+                      "förderlich: Ein Labyrinth mit engen, kleinen Gängen. In bester Horrorfilm-Manier habt "
+                      "ihr euch aufgeteilt um die Chancen auf einen Fund zu erhöhen. Letzten endes findet ihr "
+                      "euch aber doch alle in einer kreisrunden Halle wieder. Alle außer Prof. Firnossepor "
+                      "Athro Pilazanigisiti, der ist nirgends aufzufinden. Nachdem die Gruppe so lange "
+                      "Vorbereitung, so viel Kraft und Energie in den Weg gesteckt hat, kann man jetzt nicht " 
+                      "nachlassen: Der Prof. wird alleine klarkommen müssen. \nIhr schaut euch um: \n"
+                      "Gleich gegenüber des Eingangs ist ein mächtiges Tor auf dem ein uraltes Relief einer "
+                      "Stasimopus Robertsi zu erkennen ist. Mittig im Raum sind 8 Drehplatten mit jeweils "
+                      "drei verschiedenen Symbolen darauf: Ein Adler, ein Feuer und auf der dritten Seite "
+                      "eine Spinne. Gleichmäßig an den Wänden des Raumes verteilt sind 8 Knöpfe. Wenn auch "
+                      "etwas schwerfällig könnt ihr diese drücken, indem ihr !button eingebt.")
+
             await self.printTorches()
         await self.game.show_room(self, player, True, True)
 

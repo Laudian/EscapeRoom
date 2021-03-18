@@ -14,7 +14,22 @@ class TwoDoors(Room):
         self.duo_counter = 0
         self.duos = {}
         self.voice_channels = {}
-
+        self.reset_voice = False
+        self.startmessage = (
+                            "Durch das nun offene Schiebefenster kannst du deinen Gegenüber hören! Endlich mal ein "
+                            "Erfolg! Und es tut sich noch mehr:\n Es flammen nun auch die restlichen Fackeln auf und "
+                            "du fra**g**st dich so langsam auf was du dich hier eingelassen hast. Die Geschehnisse "
+                            "wandeln "
+                            "sich hier so langsam vom wunde**r**samen zum a**b**surden und unwirklichen. Außerdem ist"
+                            " neben dem"
+                            " kleinen Fenster ein riesiges Bedienfeld erschienen. Du kannst sogar wenn du drauf "
+                            "schaust, Umrisse deines Gegenüber ausmachen. Es "
+                            "erinnert schon fast an ein alten Arcade Automaten. Fehlt nur noch der Jo**y**stick und los "
+                            "gehts. Es erinnert dich an die guten alten Zeiten, wie du mit deinen Freunden in die "
+                            "Arcadehalle gefahren bist um Wreck-it-Ralph, Turb**o**, Super Mario oder Space Invaders zu "
+                            "spielen. Nur leider macht das hier nicht ganz so viel S**p**aß. Du sitzt in einem Kerker tief "
+                            "in einer Höhle und hast noch keinen blassen Schimmer wie du hier wieder rauskommen willst."
+                             )
         # flags
         self.allflags = ["🇨🇺", "🇲🇿", "🇸🇸", "🇯🇴", "🇬🇾", "🇵🇸", "🇸🇹"]
         self.flagstarts = [0, 0, 0, 0]
@@ -24,29 +39,27 @@ class TwoDoors(Room):
         self.directions = {"up": (0, -1), "left": (1, 0), "down": (0, 1), "right": (-1, 0)}
 
         # colors
-        self.colors = ["🔴", "🟣", "🔵", "🟤",  # rot, lila, blau, braun
-                       "🟢", "🟠", "🟡"]       # grün, orange, gelb
+        self.colors = ["🔴", "🟣", "🔵",    # rot, lila, blau
+                       "🟢", "🟠", "🟡"]  # grün, orange, gelb
 
-        self.colorspots = {0 : [(2, 1), (3, 2), (6, 3), (7, 6), (1, 7), (5, 8)],
-                           1 : [(4, 2), (8, 2), (5, 5), (1, 8), (3, 8), (7, 8)],
-                           2 : [(5, 2), (1, 4), (3, 4), (8, 4), (8, 7), (2, 8)],
-                           3 : [(6, 1), (1, 2), (8, 3), (4, 4), (1, 6), (4, 8)],
-                           4 : [(8, 1), (2, 4), (5, 4), (6, 6), (8, 6), (4, 7)],
-                           5 : [(1, 1), (5, 1), (7, 3), (3, 5), (5, 6), (8, 8)],
-                           6 : [(3, 1), (7, 1), (6, 4), (1, 5), (3, 6), (6, 8)]}
+        self.colorspots = {0 : [(8, 2), (2, 1), (3, 2), (6, 3), (7, 6), (1, 7), (5, 8)],
+                           1 : [(5, 5), (5, 2), (1, 4), (3, 4), (8, 4), (8, 7), (2, 8)],
+                           2 : [(7, 8), (6, 1), (1, 2), (8, 3), (4, 4), (1, 6), (4, 8)],
+                           3 : [(4, 2), (8, 1), (2, 4), (5, 4), (6, 6), (8, 6), (4, 7)],
+                           4 : [(3, 8), (1, 1), (5, 1), (7, 3), (3, 5), (5, 6), (8, 8)],
+                           5 : [(1, 8), (3, 1), (7, 1), (6, 4), (1, 5), (3, 6), (6, 8)]}
 
-        self.colororder = ("🔴", "🟣", "🔵", "🟤",  #TODO
-                           "🟢", "🟠", "🟡")
+        self.colororder = ("🟢", "🔴", "🔵",    # grün, rot, blau
+                           "🟡", "🟠", "🟣")  # gelb, orange, lila
 
         self.colormappings = {0: ["", "", "", ""],
                               1: ["", "", "", ""],
                               2: ["", "", "", ""],
                               3: ["", "", "", ""],
                               4: ["", "", "", ""],
-                              5: ["", "", "", ""],
-                              6: ["", "", "", ""]}
+                              5: ["", "", "", ""]}
         # locks mirrored
-        self.locks = {(7, 1): 0, (8, 8): 1, (8, 4): 2, (1, 3): 3, (5, 7): 4, (4, 6): 5, (3, 4): 6}
+        self.locks = {(7, 1): 0, (8, 4): 1, (1, 3): 2, (5, 7): 3, (4, 6): 4, (3, 4): 5}
         self.locksopened = [0, 0, 0, 0]
 
         # key
@@ -138,7 +151,7 @@ class TwoDoors(Room):
         all_colors = self.colors.copy()
         random.shuffle(all_colors)
         # save new color mapping
-        for i in range(7):
+        for i in range(6):
             self.colormappings[i][duo_nr] = all_colors[i]
         # change infoboard
         for color_nr, spots in self.colorspots.items():
@@ -172,27 +185,33 @@ class TwoDoors(Room):
             private = PrivateRoom(self, " " + player.name)
             await self._placeNewFlags_(self.duo_counter)
             await self._changeColors_(self.duo_counter)
-            message = await self._createMessage_(self.duo_counter, "info")
+            boardmessage = await self._createMessage_(self.duo_counter, "info")
             self.duos[self.duo_counter] = player
             self.duo_counter += 1
+            self.reset_voice = True
         else:
             # Voicechannel für Spieler 1 und 2 erstellen
             self.unfilledroom = PrivateRoom(self, " Voice")
             await self.unfilledroom.setup()
             # privaten Raum kofigurieren Spieler 1
             private = PrivateRoom(self, " " + player.name)
-            message = await self._createMessage_(self.duo_counter, "game")
+            boardmessage = await self._createMessage_(self.duo_counter, "game")
             self.duos[player] = self.duo_counter
         # Spieler zu Voicechannel hinzufügen
         await self.game.show_room(self.unfilledroom, player, text=False, voice=True)
         self.voice_channels[player] = self.unfilledroom
+        # voicechannel zurücksetzen
+        if self.reset_voice:
+            self.reset_voice = False
+            self.unfilledroom = False
         # privaten Raum erstellen
         await private.setup()
         textchannel = self.game.room_to_textchannel(private)
         await textchannel.set_permissions(self.game.roleRegistered, send_messages=False)
         await private.enter(player)
         await self.game.show_room(private, player, text=True, voice=False)
-        player.currentRoom.send(message)
+        player.currentRoom.send(self.startmessage)
+        player.currentRoom.send(boardmessage)
         self.players.append(player)
         self.lock.release()
         return
@@ -238,21 +257,21 @@ class TwoDoors(Room):
         done = False
         duo_nr = self.duos[player]
         key_color = str(content)
-        lock_position = self.key_positions[duo_nr]
-        lock_number = self.locks[lock_position]
-        lock_color = self.colormappings[lock_number][duo_nr]
         # key on field with closed lock
         if self.behind_key[duo_nr] == ":lock:":
             # key matches lock
+            lock_position = self.key_positions[duo_nr]
+            lock_number = self.locks[lock_position]
+            lock_color = self.colormappings[lock_number][duo_nr]
             if key_color == lock_color:
                 # correct lock order
                 if lock_color == self.colororder[self.locksopened[duo_nr]]:
                     self.locksopened[duo_nr] += 1
                     self.gametext[duo_nr] = "Passt perfekt!"
-                    self.infotext[duo_nr] = "Schloss " + str(self.locksopened[duo_nr]) + "/7 geöffnet. Versuche: 2"
+                    self.infotext[duo_nr] = "Schloss " + str(self.locksopened[duo_nr]) + "/6 geöffnet. Versuche: 2"
                     self.behind_key[duo_nr] = ":unlock:"
                     # last lock opened
-                    if self.locksopened[duo_nr] == 7:
+                    if self.locksopened[duo_nr] == 6:
                         done = True
                 # wrong lock order
                 else:

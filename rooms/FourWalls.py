@@ -32,9 +32,12 @@ class FourWalls(Room):
                                 "Passwort 3: 6 Buchstaben\n"
                                 "Passwort 4: Flagge\n",
                              4: "Passwort 1: 4 an 11.\n"
-                                "Passwort 2: sehrr grüne Farbe\n"
+                                "Passwort 2: sehr grüne Farbe\n"
                                 "Passwort 3: ...Y...M\n"
                                 "Passwort 4: Emoji\n"}
+        # register commands
+        self.register_command("skip", self.skip, "Raum überspringen")
+        self.register_command("password", self.checkPassword, "eingebebenes Passwort auf Richtigkeit überprüfen")
 
     async def enter(self, player):
         self.lock.acquire()
@@ -50,6 +53,12 @@ class FourWalls(Room):
             await self.channels_group1["player_" + str(in_group_nr)].enter(player)
         # start group 1
         elif in_group_nr == 4:
+            self.player_group1.append(player)
+            self.channels_group1["player_" + str(in_group_nr)] = PrivateRoom(self, " " + str(in_group_nr) +
+                                                                             " " + player.name)
+            await self.channels_group1["player_" + str(in_group_nr)].setup()
+            self.channels_group1["player_" + str(in_group_nr)].send(self.startmessage[in_group_nr])
+            await self.channels_group1["player_" + str(in_group_nr)].enter(player)
             await self.createPrivateRooms(self.channels_group1)
             await self.setPermissions(1)
             await self.showPrivateRooms(1)
@@ -63,6 +72,12 @@ class FourWalls(Room):
             await self.channels_group2["player_" + str(in_group_nr - 4)].enter(player)
         # start group 2
         else:
+            self.player_group2.append(player)
+            self.channels_group2["player_" + str(in_group_nr - 4)] = PrivateRoom(self, " " + str(in_group_nr) +
+                                                                                 " " + player.name)
+            await self.channels_group2["player_" + str(in_group_nr - 4)].setup()
+            self.channels_group2["player_" + str(in_group_nr - 4)].send(self.startmessage[in_group_nr - 4])
+            await self.channels_group2["player_" + str(in_group_nr - 4)].enter(player)
             await self.createPrivateRooms(self.channels_group2)
             await self.setPermissions(2)
             await self.showPrivateRooms(2)
@@ -95,16 +110,16 @@ class FourWalls(Room):
         # set permissions voice 1 2
         await discord_voice_1_2.set_permissions(target=discord_player2, speak=False)
         # set permissions text 2 3
-        await discord_text_2_3.set_permissions(target=discord_player2, add_reaction=False)
-        await discord_text_2_3.set_permissions(target=discord_player3, add_reaction=False)
+        await discord_text_2_3.set_permissions(target=discord_player2, add_reactions=False)
+        await discord_text_2_3.set_permissions(target=discord_player3, add_reactions=False)
         await discord_text_2_3.set_permissions(target=discord_player3, send_messages=False)
         # set permissions text 3 4
-        await discord_text_3_4.set_permissions(target=discord_player4, add_reaction=False)
+        await discord_text_3_4.set_permissions(target=discord_player4, add_reactions=False)
         await discord_text_3_4.set_permissions(target=discord_player4, send_messages=False)
         await discord_text_3_4.set_permissions(target=discord_player3, send_messages=False)
         # set permissions text 4 1
-        await discord_text_4_1.set_permissions(target=discord_player4, add_reaction=False)
-        await discord_text_4_1.set_permissions(target=discord_player1, add_reaction=False)
+        await discord_text_4_1.set_permissions(target=discord_player4, add_reactions=False)
+        await discord_text_4_1.set_permissions(target=discord_player1, add_reactions=False)
         await discord_text_4_1.set_permissions(target=discord_player1, send_messages=False)
 
     async def showPrivateRooms(self, group):
@@ -119,7 +134,7 @@ class FourWalls(Room):
         await self.game.show_room(group_channels_dict["voice_1_2"], player1, text=False, voice=True)
         # player 2
         await self.game.show_room(group_channels_dict["voice_1_2"], player2, text=False, voice=True)
-        await self.game.show_room(group_channels_dict["text_2_3"], player3, text=True, voice=False)
+        await self.game.show_room(group_channels_dict["text_2_3"], player2, text=True, voice=False)
         # player 3
         await self.game.show_room(group_channels_dict["text_2_3"], player3, text=True, voice=False)
         await self.game.show_room(group_channels_dict["text_3_4"], player3, text=True, voice=False)
@@ -175,13 +190,18 @@ class FourWalls(Room):
         else:
             player.currentRoom.send("Das passt leider nicht")
 
+    @Room.requires_mod
+    async def skip(self, player, command, content):
+        await self.rewardGroup(self.player_group1)
+        await self.rewardGroup(self.player_group2)
+
     # end of the room
     async def rewardGroup(self, group):
         for player in group:
             await self.hidePrivateRooms(group)
             await self.leave(player)
             await self.game.hide_room()
-            nextroom = self.game.get_room("Eingangshalle")
+            nextroom = self.game.get_room("Globglogabgalab")
             await nextroom.enter(player)
 
     async def leave(self, player):
