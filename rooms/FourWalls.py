@@ -130,16 +130,19 @@ class FourWalls(Room):
         player3 = group_players_list[2]
         player4 = group_players_list[3]
         # player 1
-        await self.game.show_room(group_channels_dict["text_4_1"], player1, text=True, voice=False)
+        await self.game.show_room(group_channels_dict["text_4_1"], player1, text=True, voice=False, write=False,
+                                  react=False)
         await self.game.show_room(group_channels_dict["voice_1_2"], player1, text=False, voice=True)
         # player 2
-        await self.game.show_room(group_channels_dict["voice_1_2"], player2, text=False, voice=True)
-        await self.game.show_room(group_channels_dict["text_2_3"], player2, text=True, voice=False)
+        await self.game.show_room(group_channels_dict["voice_1_2"], player2, text=False, voice=True, speak=False)
+        await self.game.show_room(group_channels_dict["text_2_3"], player2, text=True, voice=False, react=False)
         # player 3
-        await self.game.show_room(group_channels_dict["text_2_3"], player3, text=True, voice=False)
-        await self.game.show_room(group_channels_dict["text_3_4"], player3, text=True, voice=False)
+        await self.game.show_room(group_channels_dict["text_2_3"], player3, text=True, voice=False, write=False,
+                                  react=False)
+        await self.game.show_room(group_channels_dict["text_3_4"], player3, text=True, voice=False, write=False)
         # player 4
-        await self.game.show_room(group_channels_dict["text_3_4"], player4, text=True, voice=False)
+        await self.game.show_room(group_channels_dict["text_3_4"], player4, text=True, voice=False, write=False,
+                                  react=False)
         await self.game.show_room(group_channels_dict["text_4_1"], player4, text=True, voice=False)
 
     async def hidePrivateRooms(self, group):

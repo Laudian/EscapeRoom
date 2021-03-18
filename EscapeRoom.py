@@ -243,14 +243,15 @@ class EscapeRoom(object):
         await self.setup_room(bossroom)
 
     # Used to make a discord channel visible to players
-    async def show_room(self, room: "Room", player: Player, text=False, voice=False):
+    async def show_room(self, room: "Room", player: Player, text=False, voice=False, write=True, react=True,
+                        speak=True):
         member = self.player_to_discord(player)
         if text:
             textchannel = self.room_to_textchannel(room)
-            await textchannel.set_permissions(member, read_messages=True)
+            await textchannel.set_permissions(member, read_messages=True, send_messages=write, add_reactions=react)
         if voice:
             voicechannel = self.room_to_voicechannel(room)
-            await voicechannel.set_permissions(member, read_messages=True)
+            await voicechannel.set_permissions(member, read_messages=True, speak=speak, stream=False)
 
     # Used to make a discord channel invisible to players
     async def hide_room(self, room: "Room", player: Player):
