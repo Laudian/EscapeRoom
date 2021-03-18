@@ -53,12 +53,15 @@ class DiscordBot(discord.Client):
         await member.add_roles(self.controller.roleUnregistered)
 
     # someone adds a reaction anywhere the bot can see it
-    async def on_reaction_add(self, reaction, user):
-        if user == self.user:
+    async def on_reaction_add(self, reaction, member: discord.Member):
+        if member == self.user:
             return
         else:
-            pass
-            # await self.controller.handle_reaction(user, reaction.message.channel ,{"icon": reaction.emoji})
+            await reaction.message.channel.send(reaction.emoji)
+            # noinspection PyTypeChecker
+            await self.controller.handle_command(member, reaction.message.channel,
+                                                 {"emoji": reaction.emoji,
+                                                  })
 
     async def dispatch_messages(self):
         await self.wait_until_ready()
