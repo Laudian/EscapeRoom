@@ -60,7 +60,7 @@ class FourWalls(Room):
             self.channels_group1["player_" + str(in_group_nr)].send(self.startmessage[in_group_nr])
             await self.channels_group1["player_" + str(in_group_nr)].enter(player)
             await self.createPrivateRooms(self.channels_group1)
-            await self.setPermissions(1)
+            # await self.setPermissions(1)
             await self.showPrivateRooms(1)
         # fill group 2
         elif in_group_nr < 8:
@@ -79,7 +79,7 @@ class FourWalls(Room):
             self.channels_group2["player_" + str(in_group_nr - 4)].send(self.startmessage[in_group_nr - 4])
             await self.channels_group2["player_" + str(in_group_nr - 4)].enter(player)
             await self.createPrivateRooms(self.channels_group2)
-            await self.setPermissions(2)
+            # await self.setPermissions(2)
             await self.showPrivateRooms(2)
         self.lock.release()
 
