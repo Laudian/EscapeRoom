@@ -57,7 +57,6 @@ class DiscordBot(discord.Client):
         if member == self.user:
             return
         else:
-            await reaction.message.channel.send(reaction.emoji)
             # noinspection PyTypeChecker
             await self.controller.handle_command(member, reaction.message.channel,
                                                  {"emoji": reaction.emoji,

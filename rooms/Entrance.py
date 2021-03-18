@@ -5,6 +5,7 @@ import logging
 if False:
     from Player import Player
     from EscapeRoom import EscapeRoom
+    from discord import Member
 
 class Entrance(Room):
     def __init__(self, game: "EscapeRoom"):
@@ -18,11 +19,13 @@ class Entrance(Room):
         self.send("Ich habe den !test Command erfolgreich erkannt.")
         return
 
-    async def start(self, caller: "Player", command: str, content: str):
+    async def start(self, caller: Member, command: str, content: str):
+        if not (self.game.roleAdmin in caller.roles or self.game.roleModerator in caller.roles):
+            self.log("{caller} hat versucht das Spiel zu starten ohne die Berechtigung dafür zu haben.")
         self.log("Players: " + str(self.get_players()))
         self.log("start called by " + caller.name)
         # move all players from Entrance to Their starting room
         for player in list(self.get_players()):
             await self.leave(player)
-            nextroom = self.game.get_room("Vier Wände")
+            nextroom = self.game.get_room("Höhleneingang")
             await nextroom.enter(player)

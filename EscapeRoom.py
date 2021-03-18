@@ -75,7 +75,7 @@ class EscapeRoom(object):
     # Usually, every command should have it's own function which is accessed via a dict
     async def handle_command(self, caller: discord.Member, command, content: str):
         handler = self.command_handlers.get(command, self.handle_invalid_command)
-        if command in ["register", "admin"]:
+        if command in ["register", "admin", "start"]:
             await handler(caller, command, content)
         else:
             player = self.discord_to_player(caller)
@@ -135,12 +135,11 @@ class EscapeRoom(object):
                 return
             else:
                 user = mention
-        else:
-            if user in self.get_discord_users():
-                self.discord_to_player(user).send("Du bist bereits angemeldet")
-                self.discord_to_player(user).currentRoom\
-                    .log("User tried to register but was already registered")
-                return
+        if user in self.get_discord_users():
+            self.discord_to_player(user).send("Du bist bereits angemeldet")
+            self.discord_to_player(user).currentRoom\
+                .log("User tried to register but was already registered")
+            return
 
         player = Player(user.name, self)
         self.__players[player] = user
