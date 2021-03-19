@@ -23,9 +23,8 @@ entrymessage1 = ("Alle Drehscheiben zeigen die Spinne, du schaust in die Runde -
                  "Einbuchtung in der Wand links von dir. \n"
                  "Grade als du dich wieder sortiert hattest, fliegt dir noch "
                  "etwas hinterher an den Kopf. Schon wieder schummrig vom Schlag, schaust du was dir denn diese "
-                 "Überraschung beschert hat: Ein ")
-entrymessage1_2 = ("! Das muss sich wohl in der Achterbahnfahrt von deinem Gürtel "
-                   "gelöst haben. Du steckst es sicherheitshalber mal ein. \n")
+                 "Überraschung beschert hat: Ein {item}! Das muss sich wohl in der Achterbahnfahrt von deinem Gürtel "
+                 "gelöst haben. Du steckst es sicherheitshalber mal ein. \n")
 entrymessage2 = ("Du widmest dich zuerst der Tür, kannst aber wenig ausrichten gegen eine 2m hohe Steinwand. Drücken,"
                  "ziehen, dagegen stemmen, schlagen, vor Verzweiflung an der Tür herabsinken und weinen - Es hilft"
                  "alles nichts, die Tür bewegt sich keinen Millimeter. Bleibt noch die unscheinbare Ausbuchtung an der"
@@ -63,7 +62,7 @@ class Keyroom(Room):
         await private.setup()
         await private.enter(player)
         await self.game.show_room(private, player, text=True)
-        private.send(entrymessage1 + player.inventory[0] + entrymessage1_2)
+        private.send(entrymessage1.format(item=player.inventory[0]))
         private.send(entrymessage2)
         with open("resources/keyroom_colored_new.png", "rb") as keyimage:
             private.send(discord.File(keyimage))   # funktioniert nur beim ersten Spieler der dem Raum betritt

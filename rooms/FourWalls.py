@@ -19,13 +19,13 @@ class FourWalls(Room):
         self.passwords = {0: "Eigentlich sollte man diese Nachricht nicht sehen",
                           1: "333333333343333", 2: "#1aff11", 3: "qvypam", 4: ":flag_re:"}
         # startmessages
-        self.startmessage = {1: "Passwort 1: 28 Halbkreise\n"
+        self.startmessage = {1: "Passwort 1: 14 Kreise\n"
                                 "Passwort 2: Twitter\n"
                                 "Passwort 3: QV...\n"
                                 "Passwort 4: :xxxx_xx:\n",
-                             2: "Passwort 1: beinhaltet 3\n"
+                             2: "Passwort 1: beinhaltet 0\n"
                                 "Passwort 2: startet perfekt Hexadezimal\n"
-                                "Passwort 3: ...V...A...\n"
+                                "Passwort 3: ...Y...A...\n"
                                 "Passwort 4: re\n",
                              3: "Passwort 1: 15 Ziffern\n"
                                 "Passwort 2: FF11, 1D47, BD13, A2A3, 3BC5\n"
@@ -33,7 +33,7 @@ class FourWalls(Room):
                                 "Passwort 4: Flagge\n",
                              4: "Passwort 1: 4 an 11.\n"
                                 "Passwort 2: sehr grüne Farbe\n"
-                                "Passwort 3: ...Y...M\n"
+                                "Passwort 3: ...P...M\n"
                                 "Passwort 4: Emoji\n"}
         # register commands
         self.register_command("skip", self.skip, "Raum überspringen")
@@ -46,81 +46,43 @@ class FourWalls(Room):
         # fill group 1
         if in_group_nr < 4:
             self.player_group1.append(player)
-            self.channels_group1["player_" + str(in_group_nr)] = PrivateRoom(self, " " + str(in_group_nr) +
-                                                                             " " + player.name)
-            await self.channels_group1["player_" + str(in_group_nr)].setup()
-            self.channels_group1["player_" + str(in_group_nr)].send(self.startmessage[in_group_nr])
-            await self.channels_group1["player_" + str(in_group_nr)].enter(player)
+            await self.createAndShowPersonalRoom(self, player, in_group_nr)
         # start group 1
         elif in_group_nr == 4:
             self.player_group1.append(player)
-            self.channels_group1["player_" + str(in_group_nr)] = PrivateRoom(self, " " + str(in_group_nr) +
-                                                                             " " + player.name)
-            await self.channels_group1["player_" + str(in_group_nr)].setup()
-            self.channels_group1["player_" + str(in_group_nr)].send(self.startmessage[in_group_nr])
-            await self.channels_group1["player_" + str(in_group_nr)].enter(player)
+            await self.createAndShowPersonalRoom(self, player, in_group_nr)
             await self.createPrivateRooms(self.channels_group1)
-            # await self.setPermissions(1)
             await self.showPrivateRooms(1)
         # fill group 2
         elif in_group_nr < 8:
-            self.player_group2.append(player)
-            self.channels_group2["player_" + str(in_group_nr - 4)] = PrivateRoom(self, " " + str(in_group_nr) +
-                                                                                 " " + player.name)
-            await self.channels_group2["player_" + str(in_group_nr - 4)].setup()
-            self.channels_group2["player_" + str(in_group_nr - 4)].send(self.startmessage[in_group_nr - 4])
-            await self.channels_group2["player_" + str(in_group_nr - 4)].enter(player)
+            await self.createAndShowPersonalRoom(self, player, in_group_nr - 4)
         # start group 2
         else:
             self.player_group2.append(player)
-            self.channels_group2["player_" + str(in_group_nr - 4)] = PrivateRoom(self, " " + str(in_group_nr) +
-                                                                                 " " + player.name)
-            await self.channels_group2["player_" + str(in_group_nr - 4)].setup()
-            self.channels_group2["player_" + str(in_group_nr - 4)].send(self.startmessage[in_group_nr - 4])
-            await self.channels_group2["player_" + str(in_group_nr - 4)].enter(player)
+            await self.createAndShowPersonalRoom(self, player, in_group_nr - 4)
             await self.createPrivateRooms(self.channels_group2)
-            # await self.setPermissions(2)
             await self.showPrivateRooms(2)
         self.lock.release()
 
     # create all channels incl. startmessages
     async def createPrivateRooms(self, group_channels_dict):
         # create private rooms
-        group_channels_dict["voice_1_2"] = PrivateRoom(self, " 1 2")
-        group_channels_dict["text_2_3"] = PrivateRoom(self, " 2 3")
-        group_channels_dict["text_3_4"] = PrivateRoom(self, " 3 4")
-        group_channels_dict["text_4_1"] = PrivateRoom(self, " 4 1")
+        group_channels_dict["voice_1_2"] = PrivateRoom(self, " 1-2")
+        group_channels_dict["text_2_3"] = PrivateRoom(self, " 2-3")
+        group_channels_dict["text_3_4"] = PrivateRoom(self, " 3-4")
+        group_channels_dict["text_4_1"] = PrivateRoom(self, " 4-1")
         await group_channels_dict["voice_1_2"].setup()
         await group_channels_dict["text_2_3"].setup()
         await group_channels_dict["text_3_4"].setup()
         await group_channels_dict["text_4_1"].setup()
 
-    async def setPermissions(self, group):
-        group_channels_dict = self.channels_group1 if group == 1 else self.channels_group2
-        group_players_list = self.player_group1 if group == 1 else self.player_group2
-        # get discord users and channels
-        discord_player1 = self.game.player_to_discord(group_players_list[0])
-        discord_player2 = self.game.player_to_discord(group_players_list[1])
-        discord_player3 = self.game.player_to_discord(group_players_list[2])
-        discord_player4 = self.game.player_to_discord(group_players_list[3])
-        discord_voice_1_2 = self.game.room_to_voicechannel(group_channels_dict["voice_1_2"])
-        discord_text_2_3 = self.game.room_to_voicechannel(group_channels_dict["text_2_3"])
-        discord_text_3_4 = self.game.room_to_voicechannel(group_channels_dict["text_3_4"])
-        discord_text_4_1 = self.game.room_to_voicechannel(group_channels_dict["text_4_1"])
-        # set permissions voice 1 2
-        await discord_voice_1_2.set_permissions(target=discord_player2, speak=False)
-        # set permissions text 2 3
-        await discord_text_2_3.set_permissions(target=discord_player2, add_reactions=False)
-        await discord_text_2_3.set_permissions(target=discord_player3, add_reactions=False)
-        await discord_text_2_3.set_permissions(target=discord_player3, send_messages=False)
-        # set permissions text 3 4
-        await discord_text_3_4.set_permissions(target=discord_player4, add_reactions=False)
-        await discord_text_3_4.set_permissions(target=discord_player4, send_messages=False)
-        await discord_text_3_4.set_permissions(target=discord_player3, send_messages=False)
-        # set permissions text 4 1
-        await discord_text_4_1.set_permissions(target=discord_player4, add_reactions=False)
-        await discord_text_4_1.set_permissions(target=discord_player1, add_reactions=False)
-        await discord_text_4_1.set_permissions(target=discord_player1, send_messages=False)
+    async def createAndShowPersonalRoom(self, player, in_group_nr):
+        self.channels_group1["player_" + str(in_group_nr)] = PrivateRoom(self, " " + str(in_group_nr) +
+                                                                         " " + player.name)
+        await self.channels_group1["player_" + str(in_group_nr)].setup()
+        self.channels_group1["player_" + str(in_group_nr)].send(self.startmessage[in_group_nr])
+        await self.channels_group1["player_" + str(in_group_nr)].enter(player)
+        await self.game.show_room(self.channels_group1["player_" + str(in_group_nr)], player, text=True)
 
     async def showPrivateRooms(self, group):
         group_channels_dict = self.channels_group1 if group == 1 else self.channels_group2
@@ -182,6 +144,7 @@ class FourWalls(Room):
             player_nr = self.player_group2.index(player)
             group = 2
         if content.lower() == self.passwords[player_nr + 1]:
+            player.currentRoom.send("Korrekt!")
             if group == 1:
                 self.progress_group1 += 1
                 if self.progress_group1 == 4:

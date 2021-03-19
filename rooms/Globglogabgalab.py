@@ -190,3 +190,6 @@ class BossRoom(Room):   #TODO add comments
 
     async def rewardPlayers(self):
         self.send("Geschafft!")
+
+    async def deletePhoto(self):
+        pass

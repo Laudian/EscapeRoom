@@ -19,15 +19,13 @@ class TwoDoors(Room):
                             "Durch das nun offene Schiebefenster kannst du deinen Gegenüber hören! Endlich mal ein "
                             "Erfolg! Und es tut sich noch mehr:\n Es flammen nun auch die restlichen Fackeln auf und "
                             "du fra**g**st dich so langsam auf was du dich hier eingelassen hast. Die Geschehnisse "
-                            "wandeln "
-                            "sich hier so langsam vom wunde**r**samen zum a**b**surden und unwirklichen. Außerdem ist"
-                            " neben dem"
-                            " kleinen Fenster ein riesiges Bedienfeld erschienen. Du kannst sogar wenn du drauf "
-                            "schaust, Umrisse deines Gegenüber ausmachen. Es "
-                            "erinnert schon fast an ein alten Arcade Automaten. Fehlt nur noch der Jo**y**stick und los "
-                            "gehts. Es erinnert dich an die guten alten Zeiten, wie du mit deinen Freunden in die "
-                            "Arcadehalle gefahren bist um Wreck-it-Ralph, Turb**o**, Super Mario oder Space Invaders zu "
-                            "spielen. Nur leider macht das hier nicht ganz so viel S**p**aß. Du sitzt in einem Kerker tief "
+                            "wandeln sich hier so langsam vom wunde**r**samen zum a**b**surden und unwirklichen. "
+                            "Außerdem ist neben dem kleinen Fenster ein riesiges Bedienfeld erschienen. Du kannst sogar"
+                            " wenn du drauf schaust, Umrisse deines Gegenüber ausmachen. Es erinnert schon fast an "
+                            "einen alten Arcade Automaten. Fehlt nur noch der Jo**y**stick und los gehts. Es erinnert "
+                            "dich an die guten alten Zeiten, wie du mit deinen Freunden in die Arcadehalle gefahren "
+                            "bist um Wreck-it-Ralph, Turb**o**, Super Mario oder Space Invaders zu spielen. Nur leider "
+                            "macht das hier nicht ganz so viel S**p**aß. Du sitzt in einem Kerker tief "
                             "in einer Höhle und hast noch keinen blassen Schimmer wie du hier wieder rauskommen willst."
                              )
         # flags
@@ -206,10 +204,8 @@ class TwoDoors(Room):
             self.unfilledroom = False
         # privaten Raum erstellen
         await private.setup()
-        textchannel = self.game.room_to_textchannel(private)
-        await textchannel.set_permissions(self.game.roleRegistered, send_messages=False)
         await private.enter(player)
-        await self.game.show_room(private, player, text=True, voice=False)
+        await self.game.show_room(private, player, text=True, voice=False, write=False)
         player.currentRoom.send(self.startmessage)
         player.currentRoom.send(boardmessage)
         self.players.append(player)
