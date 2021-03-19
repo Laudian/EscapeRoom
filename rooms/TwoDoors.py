@@ -94,13 +94,21 @@ class TwoDoors(Room):
         self.unlock_tries = [2, 2, 2, 2]
 
         # textpanels
-        self.infotext = ["Hmm...", "Hmm...", "Hmm...", "Hmm..."]
-        self.gametext = ["Hmm...", "Hmm...", "Hmm...", "Hmm..."]
+        self.infotext = ["Versuche: " + str(self.unlock_tries[0]),
+                         "Versuche: " + str(self.unlock_tries[1]),
+                         "Versuche: " + str(self.unlock_tries[2]),
+                         "Versuche: " + str(self.unlock_tries[3])]
+
+        self.gametext = ["Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji",
+                         "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji",
+                         "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji",
+                         "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji"]
 
         # register commands
         self.register_command("move", self.moveKey, "bewegt etwas jenachdem was hinter !move steht")
         self.register_command("unlock", self.openLock, "öffnet das Schloss wenn die Farbe passt")
         self.register_command("skip", self.skip, "Raum überspringen")
+        self.register_command("reaction", self.handleButtons, "Knöpfe unter Gameboard drücken")
 
     # privat methods
 
@@ -108,9 +116,12 @@ class TwoDoors(Room):
         if board == "info":
             boarddict = self.infoboards[duo_nr]
             string = self.infotext[duo_nr]
+            buttons = ""
         else:
             boarddict = self.gameboards[duo_nr]
             string = self.gametext[duo_nr]
+            buttons = "\n🇨🇺     🇲🇿     🇸🇸     🇯🇴     🇬🇾     🇵🇸     🇸🇹" \
+                      "\n🔴       🟣       🔵       🟢       🟡       🟠"
         string += "\n"
         for y in range(10):
             for x in range(10):
@@ -118,6 +129,7 @@ class TwoDoors(Room):
                 string += "."
             string = string[:-1]
             string += "\n"
+        string += buttons
         return string
 
     async def _placeNewFlags_(self, duo_nr):
@@ -212,40 +224,54 @@ class TwoDoors(Room):
         self.lock.release()
         return
 
+    async def handleButtons(self, player, command, content):
+        if content["emoji"] in self.allflags:
+            await self.moveKey(player, command, content["emoji"])
+        elif content["emoji"] in self.colors:
+            await self.openLock(player, command, content["emoji"])
+        else:
+            duo_nr = self.duos[player]
+            self.gametext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji"
+            self.infotext[duo_nr] = "Diesen Knopf gibt es nicht"
+
     async def moveKey(self, player, command, content):
         # collect needed infos
         flag = content
         duo_nr = self.duos[player]
-        direction = self.currentflags[duo_nr][flag]
-        change = self.directions[direction]
-        old_key_position = self.key_positions[duo_nr]
-        new_key_position = (change[0] + old_key_position[0], change[1] + old_key_position[1])
-        new_key_position_infoboard = (9 - new_key_position[0], new_key_position[1])
-        # check if move allowed
-        if 0 in new_key_position or 9 in new_key_position:
-            self.gametext[duo_nr] = "Ist der Rand nicht eindeutig genug?"
-            self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
-        elif self.infoboards[duo_nr][new_key_position_infoboard] == ":skull:":
-            # reset key to start on gameboard
-            self.gametext[duo_nr] = "Wer hat's versaut? Du oder dein Gegenüber?"
-            self.gameboards[duo_nr][old_key_position] = self.behind_key[duo_nr]
-            self.behind_key[duo_nr] = ":black_circle:"
-            self.key_positions[duo_nr] = (6, 2)
-            self.gameboards[duo_nr][(6, 2)] = ":key:"
-            # change flags on infoboard
-            self.infotext[duo_nr] = "Wer hat's versaut? Du oder dein Gegenüber?"
-            await self._placeNewFlags_(duo_nr)
-        # set new emojis for valid move
-        else:
-            self.gameboards[duo_nr][old_key_position] = self.behind_key[duo_nr]
-            self.behind_key[duo_nr] = self.gameboards[duo_nr][new_key_position]
-            self.key_positions[duo_nr] = new_key_position
-            if self.behind_key[duo_nr] == ":black_circle:":
-                self.gameboards[duo_nr][new_key_position] = ":key:"
+        # check if flag currently active
+        if flag in self.currentflags[duo_nr]:
+            direction = self.currentflags[duo_nr][flag]
+            change = self.directions[direction]
+            old_key_position = self.key_positions[duo_nr]
+            new_key_position = (change[0] + old_key_position[0], change[1] + old_key_position[1])
+            new_key_position_infoboard = (9 - new_key_position[0], new_key_position[1])
+            # check if move allowed
+            if 0 in new_key_position or 9 in new_key_position:
+                self.gametext[duo_nr] = "Ist der Rand nicht eindeutig genug?"
+                self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+            elif self.infoboards[duo_nr][new_key_position_infoboard] == ":skull:":
+                # reset key to start on gameboard
+                self.gametext[duo_nr] = "Wer hat's versaut? Du oder dein Gegenüber?"
+                self.gameboards[duo_nr][old_key_position] = self.behind_key[duo_nr]
+                self.behind_key[duo_nr] = ":black_circle:"
+                self.key_positions[duo_nr] = (6, 2)
+                self.gameboards[duo_nr][(6, 2)] = ":key:"
+                # change flags on infoboard
+                self.infotext[duo_nr] = "Wer hat's versaut? Du oder dein Gegenüber?"
+                await self._placeNewFlags_(duo_nr)
+            # set new emojis for valid move
             else:
-                self.gameboards[duo_nr][new_key_position] = ":closed_lock_with_key:"
-            self.gametext[duo_nr] = "Hmm..."
-            self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+                self.gameboards[duo_nr][old_key_position] = self.behind_key[duo_nr]
+                self.behind_key[duo_nr] = self.gameboards[duo_nr][new_key_position]
+                self.key_positions[duo_nr] = new_key_position
+                if self.behind_key[duo_nr] == ":black_circle:":
+                    self.gameboards[duo_nr][new_key_position] = ":key:"
+                else:
+                    self.gameboards[duo_nr][new_key_position] = ":closed_lock_with_key:"
+                self.gametext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji"
+                self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+        else:
+            self.gametext[duo_nr] = "Dieser Knopf hat wohl gerade keine Auswirkung..."
         # send updated boards
         await self._updateBoards_(duo_nr, player)
 

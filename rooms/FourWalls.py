@@ -17,7 +17,7 @@ class FourWalls(Room):
         self.channels_group2 = {}
         # passwords
         self.passwords = {0: "Eigentlich sollte man diese Nachricht nicht sehen",
-                          1: "333333333343333", 2: "#1aff11", 3: "qvypam", 4: ":flag_re:"}
+                          1: "000000000040000", 2: "#1aff11", 3: "qvypam", 4: "🇷🇪"}
         # startmessages
         self.startmessage = {1: "Passwort 1: 14 Kreise\n"
                                 "Passwort 2: Twitter\n"
@@ -38,6 +38,7 @@ class FourWalls(Room):
         # register commands
         self.register_command("skip", self.skip, "Raum überspringen")
         self.register_command("password", self.checkPassword, "eingebebenes Passwort auf Richtigkeit überprüfen")
+        self.register_command(None, self.passOnMessage, "Nachricht von Text 2-3 in Text 3-4 weiterleiten")
 
     async def enter(self, player):
         self.lock.acquire()
@@ -46,20 +47,20 @@ class FourWalls(Room):
         # fill group 1
         if in_group_nr < 4:
             self.player_group1.append(player)
-            await self.createAndShowPersonalRoom(self, player, in_group_nr)
+            await self.createAndShowPersonalRoom(player, in_group_nr)
         # start group 1
         elif in_group_nr == 4:
             self.player_group1.append(player)
-            await self.createAndShowPersonalRoom(self, player, in_group_nr)
+            await self.createAndShowPersonalRoom(player, in_group_nr)
             await self.createPrivateRooms(self.channels_group1)
             await self.showPrivateRooms(1)
         # fill group 2
         elif in_group_nr < 8:
-            await self.createAndShowPersonalRoom(self, player, in_group_nr - 4)
+            await self.createAndShowPersonalRoom(player, in_group_nr - 4)
         # start group 2
         else:
             self.player_group2.append(player)
-            await self.createAndShowPersonalRoom(self, player, in_group_nr - 4)
+            await self.createAndShowPersonalRoom(player, in_group_nr - 4)
             await self.createPrivateRooms(self.channels_group2)
             await self.showPrivateRooms(2)
         self.lock.release()
