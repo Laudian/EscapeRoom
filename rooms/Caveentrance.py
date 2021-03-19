@@ -85,7 +85,8 @@ class Caveentrance(Room):
         await self.rewardPlayers()
 
     async def rewardPlayers(self):
+        nextroom = self.game.get_room("Kerker")
         for player in list(self.get_players()):
             await self.leave(player)
-            nextroom = self.game.get_room("Kerker")
             await nextroom.enter(player)
+        self.game.set_current_room(nextroom)

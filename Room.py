@@ -3,10 +3,11 @@ from Message import MessageType
 from typing import Dict, List
 from Player import Rank
 from threading import Lock
+import discord
+from Player import Player
 
 # noinspection PyUnreachableCode
 if False:
-    from Player import Player
     from EscapeRoom import EscapeRoom
 
 
@@ -129,22 +130,38 @@ class Room(object):
 
     @staticmethod
     def requires_admin(func):
-        async def inner(self, caller: "Player", command: str, content: str = None):
-            if caller.check_rank(Rank.ADMIN):
-                return await func(self, caller, command, content)
-            else:
-                caller.currentRoom.send("Diese Funktion kann nur von Admins benutzt werden.")
-                caller.currentRoom.log("{caller} tried to use {func} but is no Admin.".format(caller=caller.name, func=func.__name__))
+        async def inner(self, caller, command: str, content: str = None):
+            if isinstance(caller, Player):
+                if caller.check_rank(Rank.ADMIN):
+                    return await func(self, caller, command, content)
+                else:
+                    caller.currentRoom.send("Diese Funktion kann nur von Admins benutzt werden.")
+                    caller.currentRoom.log("{caller} tried to use {func} but is no Admin.".format(caller=caller.name, func=func.__name__))
+            elif isinstance(caller, discord.Member):
+                if self.game.roleAdmin in caller.roles:
+                    return await func(self, caller, command, content)
+                else:
+                    caller.currentRoom.send("Diese Funktion kann nur von Moderatoren benutzt werden.")
+                    caller.currentRoom.log("{caller} tried to use {func} but is no Mod.".format(caller=caller.name, func=func.__name__))
+                    return
         return inner
 
     @staticmethod
     def requires_mod(func):
-        async def inner(self, caller: "Player", command: str, content: str = None):
-            if caller.check_rank(Rank.MOD):
-                return await func(self, caller, command, content)
-            else:
-                caller.currentRoom.send("Diese Funktion kann nur von Moderatoren benutzt werden.")
-                caller.currentRoom.log("{caller} tried to use {func} but is no Mod.".format(caller=caller.name, func=func.__name__))
+        async def inner(self, caller, command: str, content: str = None):
+            if isinstance(caller, Player):
+                if caller.check_rank(Rank.MOD):
+                    return await func(self, caller, command, content)
+                else:
+                    caller.currentRoom.send("Diese Funktion kann nur von Moderatoren benutzt werden.")
+                    caller.currentRoom.log("{caller} tried to use {func} but is no Mod.".format(caller=caller.name, func=func.__name__))
+                    return
+            elif isinstance(caller, discord.Member):
+                if self.game.roleModerator in caller.roles or self.game.roleAdmin in caller.roles:
+                    return await func(self, caller, command, content)
+                else:
+                    caller.currentRoom.send("Diese Funktion kann nur von Moderatoren benutzt werden.")
+                    caller.currentRoom.log("{caller} tried to use {func} but is no Mod.".format(caller=caller.name, func=func.__name__))
         return inner
 
     @staticmethod

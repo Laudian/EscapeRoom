@@ -73,6 +73,7 @@ class Keyroom(Room):
         for player in list(self.get_players()):
             await self.leave(player)
             await nextroom.enter(player)
+        self.game.set_current_room(nextroom)
 
     async def leave(self, player: "Player"):
         await self.game.hide_room(player.currentRoom, player)
@@ -98,6 +99,8 @@ class Keyroom(Room):
             await asyncio.sleep(5)
             await self.leave(player)
             await nextroom.enter(player)
+            if len(self.players) == 0:
+                self.game.set_current_room(nextroom)
         else:
             player.currentRoom.send("Dies ist leider nicht das richtige Ergebnis."
                                     "Versuche es in einer Minute noch einmal.")

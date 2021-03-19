@@ -36,6 +36,7 @@ class EscapeRoom(object):
 
         # Dictionary to identify rooms by name
         self.__rooms: Dict[str, Room] = {}
+        self.__currentRoom: "Room" = None
 
         # Initializes the Dictionary where functions corresponding to the commands are stored in
         self.command_handlers = {}
@@ -70,6 +71,9 @@ class EscapeRoom(object):
     # This Method is called if the command used is unavailable in the general game.
     # will try tio resolve this by calling caller.handleCommand()
     async def handle_invalid_command(self, caller: Player, command, content):
+        if isinstance(caller, discord.Member):
+            await self.__currentRoom.handle_command(caller, command, content)
+            return
         await caller.handle_command(caller, command, content)
         return
 
@@ -77,7 +81,7 @@ class EscapeRoom(object):
     # Usually, every command should have it's own function which is accessed via a dict
     async def handle_command(self, caller: discord.Member, command, content: str):
         handler = self.command_handlers.get(command, self.handle_invalid_command)
-        if command in ["register", "admin", "start"]:
+        if command in ["register", "admin", "start", "skip"]:
             await handler(caller, command, content)
         else:
             player = self.discord_to_player(caller)
@@ -152,7 +156,7 @@ class EscapeRoom(object):
         player.set_rank(await self.get_rank(player))
         player.currentRoom.send("{name} wurde erfolgreich angemeldet.".format(name=player.name))
         player.currentRoom\
-            .log("User {name} was registered".format(name=player.name))
+            .log("User {name} was registered as {charname}".format(name=player.name, charname=player.character))
         return
 
     # translates a discord channel into a game Room
@@ -288,6 +292,7 @@ class EscapeRoom(object):
         entrance = self.get_room("Eingangshalle")
         if not (self.roleAdmin in caller.roles or self.roleModerator in caller.roles):
             entrance.log("{caller} hat versucht das Spiel zu starten ohne die Berechtigung dafür zu haben.")
+        self.set_current_room(entrance)
         entrance.log("Players: " + str(self.get_players()))
         entrance.log("start called by " + caller.name)
         # move all players from Entrance to Their starting room
@@ -296,6 +301,10 @@ class EscapeRoom(object):
             nextroom = self.get_room("Höhleneingang")
             await nextroom.enter(player)
         self.started = True
+        self.set_current_room(nextroom)
+
+    def set_current_room(self, room: "Room"):
+        self.__currentRoom = room
 
 
 game = EscapeRoom()
