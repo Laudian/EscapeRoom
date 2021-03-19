@@ -21,11 +21,11 @@ class Rank(Enum):
 class Player(object):
     id = 0
     idLock = Lock()
-    characters = {1: "Tusitalafou der Reviewer", 2: "Knotenmensch", 3: "Ormänniska der Gelenkige",
+    characters = {1: "Tusitalafou der Reviewer", 2: "Nyja mit den geschickten Fingern", 3: "Ormänniska der Gelenkige",
                   4: "Rinua die Flinke", 5: "Aplistus der Habgierige", 6: "Iris die alte Höhlenführerin",
                   7: "Birol der gigantische Wächter", 8: "Sheying der Fotograf"}
     items = {1: "Kletterschuh", 2: "Feuerzeug", 3: "Playmobilmännchen",
-             4: "Seil", 5: None, 6: "Fotoapperat",
+             4: "Seil", 5: None, 6: "Fotoapparat",
              7: "Kletterschuh", 8: None}
 
     def __init__(self, name: str, game: "EscapeRoom"):
@@ -115,9 +115,3 @@ class Player(object):
 
     def set_rank(self, rank: Rank):
         self.__rank = rank
-
-    def giveItem(self, item):
-        self.inventory.remove(item)
-
-    def recieveItem(self, item):
-        self.inventory.append(item)
