@@ -74,6 +74,8 @@ class Player(object):
         return
 
     def __eq__(self, other: "Player") -> bool:
+        if not isinstance(other, self.__class__):
+            return False
         return self.id == other.id
 
     def __ne__(self, other: "Player") -> bool:
