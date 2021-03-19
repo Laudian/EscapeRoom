@@ -17,7 +17,7 @@ class FourWalls(Room):
         self.channels_group2 = {}
         # passwords
         self.passwords = {0: "Eigentlich sollte man diese Nachricht nicht sehen",
-                          1: "333333333343333", 2: "#1aff11", 3: "qvypam", 4: ":flag_re:"}
+                          1: "333333333343333", 2: "#1aff11", 3: "qvypam", 4: "🇷🇪"}
         # startmessages
         self.startmessage = {1: "Passwort 1: 14 Kreise\n"
                                 "Passwort 2: Twitter\n"
