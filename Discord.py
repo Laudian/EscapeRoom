@@ -58,8 +58,11 @@ class DiscordBot(discord.Client):
             return
         else:
             # noinspection PyTypeChecker
-            await self.controller.handle_command(member, reaction.message.channel,
+            await self.controller.handle_command(member, "reaction",
                                                  {"emoji": reaction.emoji,
+                                                  "message": reaction.message,
+                                                  "channel": reaction.message.channel,
+                                                  "reaction": reaction
                                                   })
 
     async def dispatch_messages(self):
