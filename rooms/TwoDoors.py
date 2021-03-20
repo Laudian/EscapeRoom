@@ -85,19 +85,16 @@ class TwoDoors(Room):
         for i in range(4):
             self.infoboards.append(self.infoboard.copy())
             self.gameboards.append(self.gameboard.copy())
-            # add locks
+            # add locks and the key
             for (x, y) in self.locks.keys():
                 self.gameboards[i][(x, y)] = ":lock:"
             self.gameboards[i][self.key_positions[i]] = ":key:"
 
-        # unlock tries
-        self.unlock_tries = [2, 2, 2, 2]
-
         # textpanels
-        self.infotext = ["Versuche: " + str(self.unlock_tries[0]),
-                         "Versuche: " + str(self.unlock_tries[1]),
-                         "Versuche: " + str(self.unlock_tries[2]),
-                         "Versuche: " + str(self.unlock_tries[3])]
+        self.infotext = ["Hmm...",
+                         "Hmm...",
+                         "Hmm...",
+                         "Hmm..."]
 
         self.gametext = ["Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji",
                          "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji",
@@ -169,16 +166,6 @@ class TwoDoors(Room):
             for spot in spots:
                 self.infoboards[duo_nr][spot] = color
 
-    async def _restartAfterLockMistakes(self, duo_nr, lock_position):
-        # reset locks
-        self.unlock_tries[duo_nr] = 2
-        self.locksopened[duo_nr] = 0
-        for (x, y) in self.locks.keys():
-            self.gameboards[duo_nr][(x, y)] = ":lock:"
-        # change colors
-        await self._changeColors_(duo_nr)
-        self.gameboards[duo_nr][lock_position] = ":closed_lock_with_key:"
-
     async def _updateBoards_(self, duo_nr, gameplayer):
         message_game = await self._createMessage_(duo_nr, "game")
         message_info = await self._createMessage_(duo_nr, "info")
@@ -231,8 +218,8 @@ class TwoDoors(Room):
             await self.openLock(player, command, content["emoji"])
         else:
             duo_nr = self.duos[player]
-            self.gametext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji"
-            self.infotext[duo_nr] = "Diesen Knopf gibt es nicht"
+            self.gametext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji."
+            self.infotext[duo_nr] = "Diesen Knopf gibt es nicht."
 
     async def moveKey(self, player, command, content):
         # collect needed infos
@@ -248,16 +235,16 @@ class TwoDoors(Room):
             # check if move allowed
             if 0 in new_key_position or 9 in new_key_position:
                 self.gametext[duo_nr] = "Ist der Rand nicht eindeutig genug?"
-                self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+                self.infotext[duo_nr] = "Ist der Rand nicht eindeutig genug?"
             elif self.infoboards[duo_nr][new_key_position_infoboard] == ":skull:":
                 # reset key to start on gameboard
-                self.gametext[duo_nr] = "Wer hat's versaut? Du oder dein Gegenüber?"
+                self.gametext[duo_nr] = "Da solltest du besser nicht hin..."
                 self.gameboards[duo_nr][old_key_position] = self.behind_key[duo_nr]
                 self.behind_key[duo_nr] = ":black_circle:"
                 self.key_positions[duo_nr] = (6, 2)
                 self.gameboards[duo_nr][(6, 2)] = ":key:"
                 # change flags on infoboard
-                self.infotext[duo_nr] = "Wer hat's versaut? Du oder dein Gegenüber?"
+                self.infotext[duo_nr] = "Da solltest du besser nicht hin..."
                 await self._placeNewFlags_(duo_nr)
             # set new emojis for valid move
             else:
@@ -268,8 +255,8 @@ class TwoDoors(Room):
                     self.gameboards[duo_nr][new_key_position] = ":key:"
                 else:
                     self.gameboards[duo_nr][new_key_position] = ":closed_lock_with_key:"
-                self.gametext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji"
-                self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+                self.gametext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji."
+                self.infotext[duo_nr] = "Um auf einen der Knöpfe zu drücken reagiere mit dem entsprechenend Emoji."
         else:
             self.gametext[duo_nr] = "Dieser Knopf hat wohl gerade keine Auswirkung..."
         # send updated boards
@@ -290,41 +277,27 @@ class TwoDoors(Room):
                 if lock_color == self.colororder[self.locksopened[duo_nr]]:
                     self.locksopened[duo_nr] += 1
                     self.gametext[duo_nr] = "Passt perfekt!"
-                    self.infotext[duo_nr] = "Schloss " + str(self.locksopened[duo_nr]) + "/6 geöffnet. Versuche: 2"
+                    self.infotext[duo_nr] = "Schloss " + str(self.locksopened[duo_nr]) + "/6 geöffnet."
                     self.behind_key[duo_nr] = ":unlock:"
                     # last lock opened
                     if self.locksopened[duo_nr] == 6:
                         done = True
                 # wrong lock order
                 else:
-                    self.unlock_tries[duo_nr] -= 1
                     self.gametext[duo_nr] = "Da passt irgendwas nicht."
-                    # restart
-                    if self.unlock_tries[duo_nr] == 0:
-                        await self._restartAfterLockMistakes(duo_nr, lock_position)
-                        self.infotext[duo_nr] = "Alle Schlösser zurückgesetzt. Das war ein Fehler zu viel"
-                    # 1 try left
-                    else:
-                        self.infotext[duo_nr] = "Falsche Schlossreihenfolge. Versuche: 1"
+                    self.infotext[duo_nr] = "Falsche Schlossreihenfolge."
             # key doesnt match lock
             else:
-                self.unlock_tries[duo_nr] -= 1
                 self.gametext[duo_nr] = "Da passt irgendwas nicht."
-                # restart
-                if self.unlock_tries[duo_nr] == 0:
-                    await self._restartAfterLockMistakes(duo_nr, lock_position)
-                    self.infotext[duo_nr] = "Alle Schlösser zurückgesetzt. Das war ein Fehler zu viel"
-                # 1 try left
-                else:
-                    self.infotext[duo_nr] = "Falsche Schlüsselfarbe. Versuche: 1"
+                self.infotext[duo_nr] = "Schlüssel passt nicht."
         # key on field with open lock
         elif self.behind_key[duo_nr] == ":open_lock:":
             self.gametext[duo_nr] = "Dieses Schloss ist schon offen"
-            self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+            self.infotext[duo_nr] = "Dieses Schloss ist schon offen"
         # key on field without lock
         else:
             self.gametext[duo_nr] = "Du weißt schon, dass hier kein Schloss ist?"
-            self.infotext[duo_nr] = "Versuche: " + str(self.unlock_tries[duo_nr])
+            self.infotext[duo_nr] = "Du weißt schon, dass hier kein Schloss ist?"
         await self._updateBoards_(duo_nr, player)
         if done:
             await self.rewardPlayers(player, duo_nr)
