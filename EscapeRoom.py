@@ -154,7 +154,8 @@ class EscapeRoom(object):
         await user.remove_roles(self.roleUnregistered)
         await user.add_roles(self.roleRegistered)
         player.set_rank(await self.get_rank(player))
-        player.currentRoom.send("{name} wurde erfolgreich angemeldet.".format(name=player.name))
+        player.currentRoom.send("{name} wurde erfolgreich als {charname} angemeldet.".format(name=player.name,
+                                                                                             charname=player.character))
         player.currentRoom\
             .log("User {name} was registered as {charname}".format(name=player.name, charname=player.character))
         return
@@ -296,9 +297,9 @@ class EscapeRoom(object):
         entrance.log("Players: " + str(self.get_players()))
         entrance.log("start called by " + caller.name)
         # move all players from Entrance to Their starting room
+        nextroom = self.get_room("Globglogabgalab")
         for player in list(self.get_players()):
             await entrance.leave(player)
-            nextroom = self.get_room("Höhleneingang")
             await nextroom.enter(player)
         self.started = True
         self.set_current_room(nextroom)
