@@ -23,8 +23,8 @@ entrymessage1 = ("Alle Drehscheiben zeigen die Spinne, du schaust in die Runde -
                  "Einbuchtung in der Wand links von dir. \n"
                  "Grade als du dich wieder sortiert hattest, fliegt dir noch "
                  "etwas hinterher an den Kopf. Schon wieder schummrig vom Schlag, schaust du was dir denn diese "
-                 "Überraschung beschert hat: Ein {item}! Das muss sich wohl in der Achterbahnfahrt von deinem Gürtel "
-                 "gelöst haben. Du steckst es sicherheitshalber mal ein. \n")
+                 "Überraschung beschert hat: Ein {item}! Muss sich wohl in der Achterbahnfahrt von deinem Gürtel "
+                 "gelöst haben. Sicherheitshalber mal einstecken, kann ja noch nützlich werden. \n")
 entrymessage2 = ("Du widmest dich zuerst der Tür, kannst aber wenig ausrichten gegen eine 2m hohe Steinwand. Drücken,"
                  "ziehen, dagegen stemmen, schlagen, vor Verzweiflung an der Tür herabsinken und weinen - Es hilft"
                  "alles nichts, die Tür bewegt sich keinen Millimeter. Bleibt noch die unscheinbare Ausbuchtung an der"
@@ -39,7 +39,7 @@ entrymessage2 = ("Du widmest dich zuerst der Tür, kannst aber wenig ausrichten 
                  "Einfacher wird’s nicht: Jedes Viereck  \n"
                  "möge enthalten genau die Anzahl an Zellen, was ein Dreck, \n" 
                  "die die Ziffer vorgibt innerhalb der Grenze. \n"  
-                 "Mit !pin kannst du aufschließen das Schloss \n"  
+                 "Mit !pin ##### kannst du aufschließen das Schloss \n"  
                  "und die Farbfelder von oben nach unten als Zahlencode, du Boss! \n")
 result = 128639
 
@@ -83,7 +83,7 @@ class Keyroom(Room):
     async def pin(self, player, command, content):
         lasttime = self.__lasttry.get(player, None)
         current = datetime.datetime.now()
-        if lasttime is not None and (current - lasttime) > datetime.timedelta(minutes=1):
+        if lasttime is not None and (current - lasttime) > datetime.timedelta(seconds=30):
             player.currentRoom.send("Du musst noch warten, bevor du eine weitere Eingabe tätigen kannst.")
             return
 
