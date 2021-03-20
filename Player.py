@@ -25,17 +25,15 @@ class Player(object):
                   4: "Rinua die Flinke", 5: "Aplistus der Habgierige", 6: "Iris die alte Höhlenführerin",
                   7: "Birol der gigantische Wächter", 8: "Sheying der Fotograf"}
     items = {1: "Kletterschuh", 2: "Feuerzeug", 3: "Playmobilmännchen",
-             4: "Seil", 5: None, 6: "Fotoapparat",
-             7: "Kletterschuh", 8: None}
+             4: "Seil", 5: "Buch", 6: "Fotoapparat",
+             7: "Kletterschuh", 8: "Buch"}
 
     def __init__(self, name: str, game: "EscapeRoom"):
         self.id: int = Player.get_id()
         self.name: str = name
         self.character = Player.get_character(self.id)
         item = Player.get_item(self.id)
-        self.inventory = []
-        if item:
-            self.inventory.append(item)
+        self.inventory = [item]
         self.currentRoom: "Room" = None
         self.messageType: "MessageType" = MessageType.PLAYER
         self.__rank: Rank = Rank.UNREGISTERED
